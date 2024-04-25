@@ -19,13 +19,9 @@ $bot->onCommand('start', function(Nutgram $bot) {
         $user_info = get_object_vars($bot->user());
         createUser($user_info);
         createLog(TIME_NOW, 'user', $bot->userId(), 'registering', '/start');
-        // $inlineKeyboard = InlineKeyboardMarkup::make()
-        // ->addRow(InlineKeyboardButton::make(msg('change_language', lang($bot->userId())), null, null, 'callback_change_lang'));
         $bot->sendMessage(msg('welcome', lang($bot->userId())), reply_markup: constructMenuButtons(lang($bot->userId())));
     } elseif (checkUser($bot->userId()) == 'one_user') {
         createLog(TIME_NOW, 'user', $bot->userId(), 'command', '/start');
-        // $inlineKeyboard = InlineKeyboardMarkup::make()
-        // ->addRow(InlineKeyboardButton::make(msg('change_language', lang($bot->userId())), null, null, 'callback_change_lang'));
         $bot->sendMessage(msg('welcome_back', lang($bot->userId())), reply_markup: constructMenuButtons(lang($bot->userId())));
     } else {
         $bot->sendMessage('WTF are you?');
@@ -34,21 +30,48 @@ $bot->onCommand('start', function(Nutgram $bot) {
 
 $bot->onCallbackQueryData('callback_change_lang', function (Nutgram $bot) {
     createLog(TIME_NOW, 'user', $bot->userId(), 'callback', 'change language');
-    $changeLangInlineKeyboard = InlineKeyboardMarkup::make()->addRow(InlineKeyboardButton::make(msg('language', 'en'), null, null, 'callback_change_lang_to en'))->addRow(InlineKeyboardButton::make(msg('language', 'uk'), null, null, 'callback_change_lang_to uk'))->addRow(InlineKeyboardButton::make(msg('language', 'ru'), null, null, 'callback_change_lang_to ru'));
+    $changeLangInlineKeyboard = InlineKeyboardMarkup::make()->addRow(InlineKeyboardButton::make(msg('language', 'en'), null, null, 'callback_change_lang_to en'))->addRow(InlineKeyboardButton::make(msg('language', 'uk'), null, null, 'callback_change_lang_to uk'))->addRow(InlineKeyboardButton::make(msg('language', 'ru'), null, null, 'callback_change_lang_to ru'))->addRow(InlineKeyboardButton::make(msg('cancel', lang($bot->userId())), null,null, 'callback_cancel'));
     $bot->sendMessage(msg('choose_language', lang($bot->userId())), reply_markup: $changeLangInlineKeyboard);
     $bot->answerCallbackQuery();
 });
 
 $bot->onCallbackQueryData('callback_change_lang_to {param}', function (Nutgram $bot, $param) {
+    $bot->deleteMessage($bot->userId(),$bot->messageId());
     changeLanguage($bot->userId(), $param);
-    $bot->sendMessage(msg('language_changed', lang($bot->userId())));
+    $bot->sendMessage(msg('language_changed', lang($bot->userId())), reply_markup: constructMenuButtons(lang($bot->userId())));
+    $bot->answerCallbackQuery();
+});
+
+$bot->onCallbackQueryData('callback_cancel', function (Nutgram $bot) {
+    $bot->deleteMessage($bot->userId(),$bot->messageId());
+    $bot->sendMessage(msg('language_changed', lang($bot->userId())), reply_markup: constructMenuButtons(lang($bot->userId())));
     $bot->answerCallbackQuery();
 });
 
 $bot->onMessage(function (Nutgram $bot) {
     createLog(TIME_NOW, 'user', $bot->userId(), 'message', $bot->message()->text);
-    $msg = "You send: ".$bot->message()->text;
-    $bot->sendMessage($msg);
+    $text = $bot->message()->text;
+    $lang = lang($bot->userId());
+    if (str_contains($text, msg('approve', $lang))) {
+        $bot->sendMessage(msg('WIP', $lang));
+    }
+    elseif (str_contains($text, msg('prescribe', $lang))) {
+        $bot->sendMessage(msg('WIP', $lang));
+    }
+    elseif (str_contains($text, msg('frends', $lang))) {
+        $bot->sendMessage(msg('WIP', $lang));
+    }
+    elseif (str_contains($text, msg('status', $lang))) {
+        $inlineKeyboard = InlineKeyboardMarkup::make()
+        ->addRow(InlineKeyboardButton::make(msg('change_language', lang($bot->userId())), null, null, 'callback_change_lang'));
+        $bot->sendMessage(constructStatus($bot->userId()), reply_markup: $inlineKeyboard);
+    }
+    elseif (str_contains($text, msg('info', $lang))) {
+        $bot->sendMessage(msg('WIP', $lang));
+    } 
+    else {
+        $bot->sendMessage("You send: ".$text);
+    }
 });
 
 $bot->run();

@@ -82,4 +82,20 @@ function constructMenuButtons($lang) {
     return $keyboard;
 }
 
+function constructStatus($userId) {
+    $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+    $user = mysqli_fetch_assoc(mysqli_query($dbCon, "SELECT * FROM user WHERE userId='$userId'"));
+    if ($user['username']=='') {
+        $username = $user['first_name'].' '.$user['last_name'];
+    } else { $username = $user['username']; }
+    $lang = $user['language'];
+    $registered = substr($user['registeredAt'], 0, 10);
+
+    $status = "=========================\n   📜 User: ".$username."\n=========================\n ".msg('status_frends', $lang).": -1\n\n ".msg('status_acceptedPuffs', $lang).": 0/0\n\n ".msg('status_prescribedPuffs', $lang).": 0\n_____________________________\n ".msg('status_registered', $lang).": ".$registered."\n=========================";    
+
+    mysqli_close($dbCon);
+
+    return $status;
+}
+
 ?>
