@@ -35,6 +35,11 @@ $languages = array(
 		'choose_language' => 'Choose language',
 		'language_changed' => 'Language changed',
 		'language' => '🇬🇧 English',
+		'approve' => 'approve ✅',
+		'prescribe' => 'prescribe ✏️',
+		'frends' => 'frends 🙋‍♂️',
+		'status' => 'status 📜',
+		'info' => 'info 📢',
 	),
 	'ru' => array(
 		'welcome' => 'Добро пожаловать',
@@ -43,6 +48,11 @@ $languages = array(
 		'choose_language' => 'Выберите язык',
 		'language_changed' => 'Язык изменён',
 		'language' => '🇷🇺 Русский',
+		'approve' => 'подтвердить ✅',
+		'prescribe' => 'выписать ✏️',
+		'frends' => 'друзья 🙋‍♂️',
+		'status' => 'статус 📜',
+		'info' => 'инфо 📢',
 	),
 	'uk' => array(
 		'welcome' => 'Ласкаво просимо',
@@ -51,6 +61,11 @@ $languages = array(
 		'choose_language' => 'Оберiть мову',
 		'language_changed' => 'Мову змiнено',
 		'language' => '🇺🇦 Українська',
+		'approve' => 'Пiдтвердити ✅',
+		'prescribe' => 'Виписати ✏️',
+		'frends' => 'друзi 🙋‍♂️',
+		'status' => 'статус 📜',
+		'info' => 'iнфо 📢',
 	),
 );
 

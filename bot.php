@@ -19,14 +19,14 @@ $bot->onCommand('start', function(Nutgram $bot) {
         $user_info = get_object_vars($bot->user());
         createUser($user_info);
         createLog(TIME_NOW, 'user', $bot->userId(), 'registering', '/start');
-        $inlineKeyboard = InlineKeyboardMarkup::make()
-        ->addRow(InlineKeyboardButton::make(msg('change_language', lang($bot->userId())), null, null, 'callback_change_lang'));
-        $bot->sendMessage(msg('welcome', lang($bot->userId())), reply_markup: $inlineKeyboard);
+        // $inlineKeyboard = InlineKeyboardMarkup::make()
+        // ->addRow(InlineKeyboardButton::make(msg('change_language', lang($bot->userId())), null, null, 'callback_change_lang'));
+        $bot->sendMessage(msg('welcome', lang($bot->userId())), reply_markup: constructMenuButtons(lang($bot->userId())));
     } elseif (checkUser($bot->userId()) == 'one_user') {
         createLog(TIME_NOW, 'user', $bot->userId(), 'command', '/start');
-        $inlineKeyboard = InlineKeyboardMarkup::make()
-        ->addRow(InlineKeyboardButton::make(msg('change_language', lang($bot->userId())), null, null, 'callback_change_lang'));
-        $bot->sendMessage(msg('welcome_back', lang($bot->userId())), reply_markup: $inlineKeyboard);
+        // $inlineKeyboard = InlineKeyboardMarkup::make()
+        // ->addRow(InlineKeyboardButton::make(msg('change_language', lang($bot->userId())), null, null, 'callback_change_lang'));
+        $bot->sendMessage(msg('welcome_back', lang($bot->userId())), reply_markup: constructMenuButtons(lang($bot->userId())));
     } else {
         $bot->sendMessage('WTF are you?');
     }

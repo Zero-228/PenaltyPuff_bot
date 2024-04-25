@@ -1,5 +1,8 @@
 <?php 
 
+use SergiX44\Nutgram\Telegram\Types\Keyboard\ReplyKeyboardMarkup;
+use SergiX44\Nutgram\Telegram\Types\Keyboard\KeyboardButton;
+
 function debug($things, $decode=false, $clear=false) {
 
     $directory_path = $_SERVER['DOCUMENT_ROOT'] . '/temp';
@@ -68,6 +71,15 @@ function changeLanguage($userId, $newLang) {
     $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
     $query = mysqli_query($dbCon, "UPDATE user SET language='$newLang' WHERE userId='$userId'");
     mysqli_close($dbCon);
+}
+
+function constructMenuButtons($lang) {
+    $keyboard = ReplyKeyboardMarkup::make()
+    ->addRow(KeyboardButton::make(msg('approve', $lang)), KeyboardButton::make(msg('prescribe', $lang)),)
+    ->addRow(KeyboardButton::make(msg('frends', $lang)))
+    ->addRow(KeyboardButton::make(msg('status', $lang)), KeyboardButton::make(msg('info', $lang)),);
+
+    return $keyboard;
 }
 
 ?>
