@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: 127.0.0.1
--- Время создания: Апр 20 2024 г., 13:43
+-- Время создания: Апр 26 2024 г., 02:17
 -- Версия сервера: 10.4.32-MariaDB
 -- Версия PHP: 8.2.12
 
@@ -18,7 +18,29 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- База данных: `taptomine-bot`
+-- База данных: `shtrafnayabot_rem`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы `friend_request`
+--
+
+CREATE TABLE `friend_request` (
+  `user_from` int(11) NOT NULL,
+  `user_to` int(11) NOT NULL,
+  `status` varchar(8) NOT NULL COMMENT '(friends/denied/unfriend/..)',
+  `modified_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `created_at` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- ССЫЛКИ ТАБЛИЦЫ `friend_request`:
+--   `user_to`
+--       `user` -> `userId`
+--   `user_from`
+--       `user` -> `userId`
 --
 
 -- --------------------------------------------------------
@@ -72,6 +94,13 @@ CREATE TABLE `user` (
 --
 
 --
+-- Индексы таблицы `friend_request`
+--
+ALTER TABLE `friend_request`
+  ADD PRIMARY KEY (`user_from`,`user_to`),
+  ADD KEY `user_to` (`user_to`);
+
+--
 -- Индексы таблицы `log`
 --
 ALTER TABLE `log`
@@ -97,6 +126,13 @@ ALTER TABLE `log`
 --
 -- Ограничения внешнего ключа сохраненных таблиц
 --
+
+--
+-- Ограничения внешнего ключа таблицы `friend_request`
+--
+ALTER TABLE `friend_request`
+  ADD CONSTRAINT `friend_request_ibfk_1` FOREIGN KEY (`user_to`) REFERENCES `user` (`userId`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `friend_request_ibfk_2` FOREIGN KEY (`user_from`) REFERENCES `user` (`userId`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Ограничения внешнего ключа таблицы `log`

@@ -42,9 +42,14 @@ $bot->onCallbackQueryData('callback_change_lang_to {param}', function (Nutgram $
     $bot->answerCallbackQuery();
 });
 
+$bot->onCallbackQueryData('callback_invite_friend', function (Nutgram $bot) {
+    $bot->sendMessage(msg('WIP', lang($bot->userId())));
+    $bot->answerCallbackQuery();
+});
+
 $bot->onCallbackQueryData('callback_cancel', function (Nutgram $bot) {
     $bot->deleteMessage($bot->userId(),$bot->messageId());
-    $bot->sendMessage(msg('language_changed', lang($bot->userId())), reply_markup: constructMenuButtons(lang($bot->userId())));
+    $bot->sendMessage(msg('canceled', lang($bot->userId())), reply_markup: constructMenuButtons(lang($bot->userId())));
     $bot->answerCallbackQuery();
 });
 
@@ -59,7 +64,12 @@ $bot->onMessage(function (Nutgram $bot) {
         $bot->sendMessage(msg('WIP', $lang));
     }
     elseif (str_contains($text, msg('frends', $lang))) {
-        $bot->sendMessage(msg('WIP', $lang));
+        $friends = findFriends($bot->userId());
+        $inlineKeyboard = InlineKeyboardMarkup::make()
+        ->addRow(InlineKeyboardButton::make(msg('invite_friend', lang($bot->userId())), null, null, 'callback_invite_friend'))->addRow(InlineKeyboardButton::make(msg('cancel', lang($bot->userId())), null,null, 'callback_cancel'));
+        if ($friends==0) {
+            $bot->sendMessage(msg('no_friends', $lang), reply_markup: $inlineKeyboard);
+        }
     }
     elseif (str_contains($text, msg('status', $lang))) {
         $inlineKeyboard = InlineKeyboardMarkup::make()

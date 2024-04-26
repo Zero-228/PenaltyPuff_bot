@@ -47,6 +47,8 @@ $languages = array(
 		'status_acceptedPuffs' => '✅ Accepted puffs',
 		'status_prescribedPuffs' => '✏️ Prescribed puffs',
 		'status_registered' => '📅 Registered',
+		'no_friends' => "It seems like you don't have connected friends yet(\n\nInvite them with a button below to prescribe \nthem penalty puffs properly)",
+		'invite_friend' => '💃 Invite 💃',
 	),
 	'ru' => array(
 		'welcome' => 'Добро пожаловать',
@@ -67,6 +69,8 @@ $languages = array(
 		'status_acceptedPuffs' => '✅ Приянл штрафных',
 		'status_prescribedPuffs' => '✏️ Выписал штрафных',
 		'status_registered' => '📅 Зарегистрирован',
+		'no_friends' => "Кажется что у тебя еще нет друзей(\n\nПригласи их с помощью кнопки ниже чтобы \nвыписывать им штрафные как положено)",
+		'invite_friend' => '💃 Пригласить 💃',
 	),
 	'uk' => array(
 		'welcome' => 'Ласкаво просимо',
@@ -87,6 +91,8 @@ $languages = array(
 		'status_acceptedPuffs' => '✅ Прийняв штрафних',
 		'status_prescribedPuffs' => '✏️ Виписав штрафних',
 		'status_registered' => '📅 Зареєстрован',
+		'no_friends' => "Здається щто в тебе немає друзiв(\n\nЗапроси їх за допомогою книпки нижче \nщоб впипсувати їм штрафнi як належить)",
+		'invite_friend' => '💃 Запросити 💃',
 	),
 );
 

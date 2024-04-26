@@ -98,4 +98,17 @@ function constructStatus($userId) {
     return $status;
 }
 
+function findFriends($userId) {
+    $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+    $friends = mysqli_query($dbCon, "SELECT * FROM friend_request WHERE (user_from='$userId' AND status='friends') OR (user_to='$userId' AND status='friends')");
+
+    $num_rows = mysqli_num_rows($friends);
+    if ($num_rows==0) {
+        return 0;
+    } else {
+        debug(mysqli_fetch_assoc($friends));
+    }
+    mysqli_close($dbCon);
+}
+
 ?>
