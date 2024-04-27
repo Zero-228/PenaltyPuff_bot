@@ -16,7 +16,8 @@ $bot->setRunningMode(Webhook::class);
 $bot->setWebhook(WEBHOOK_URL);
 
 $bot->onCommand('start {referral}', function(Nutgram $bot, $referral = null) {
-    if (checkUser($bot->userId()) == 'no_such_user') {
+    $checkUser = checkUser($bot->userId());
+    if ($checkUser == 'no_such_user') {
         $user_info = get_object_vars($bot->user());
         createUser($user_info);
         createLog(TIME_NOW, 'user', $bot->userId(), 'registering', '/start');
@@ -35,9 +36,8 @@ $bot->onCommand('start {referral}', function(Nutgram $bot, $referral = null) {
                 $bot->sendMessage('Some strange shit');
             }
         }
-    } elseif (checkUser($bot->userId()) == 'one_user') {
+    } elseif ($checkUser == 'one_user') {
         createLog(TIME_NOW, 'user', $bot->userId(), 'command', '/start');
-        $bot->sendMessage(msg('welcome_back', lang($bot->userId())), reply_markup: constructMenuButtons(lang($bot->userId())));
         if ($referral) {
             $newFriend = makeFriend($referral, $bot->userId(), TIME_NOW);
             if (str_contains($newFriend, "new friends")) {
@@ -51,7 +51,24 @@ $bot->onCommand('start {referral}', function(Nutgram $bot, $referral = null) {
             } else {
                 $bot->sendMessage('Some strange shit');
             }
+        } else {
+            $bot->sendMessage(msg('welcome_back', lang($bot->userId())), reply_markup: constructMenuButtons(lang($bot->userId())));
         }
+    } else {
+        $bot->sendMessage('WTF are you?');
+    }
+});
+
+$bot->onCommand('start', function(Nutgram $bot) {
+    $checkUser = checkUser($bot->userId());
+    if ($checkUser == 'no_such_user') {
+        $user_info = get_object_vars($bot->user());
+        createUser($user_info);
+        createLog(TIME_NOW, 'user', $bot->userId(), 'registering', '/start');
+        $bot->sendMessage(msg('welcome', lang($bot->userId())), reply_markup: constructMenuButtons(lang($bot->userId())));
+    } elseif ($checkUser == 'one_user') {
+        createLog(TIME_NOW, 'user', $bot->userId(), 'command', '/start');
+        $bot->sendMessage(msg('welcome_back', lang($bot->userId())), reply_markup: constructMenuButtons(lang($bot->userId())));
     } else {
         $bot->sendMessage('WTF are you?');
     }
@@ -118,7 +135,7 @@ $bot->onMessage(function (Nutgram $bot) {
     elseif (str_contains($text, msg('frends', $lang))) {
         $friends = findFriends($bot->userId());
         $inlineKeyboard = InlineKeyboardMarkup::make()
-        ->addRow(InlineKeyboardButton::make(msg('invite_friend', lang($bot->userId())), null, null, null, 'make friend'))->addRow(InlineKeyboardButton::make(msg('cancel', lang($bot->userId())), null,null, 'callback_cancel'));
+        ->addRow(InlineKeyboardButton::make(msg('invite_friend', lang($bot->userId())), null, null, null, 'friend'))->addRow(InlineKeyboardButton::make(msg('cancel', lang($bot->userId())), null,null, 'callback_cancel'));
         if ($friends==0) {
             $bot->sendMessage(msg('no_friends', $lang), reply_markup: $inlineKeyboard);
         } else {
@@ -139,7 +156,7 @@ $bot->onMessage(function (Nutgram $bot) {
     }
 });
 
-$bot->onInlineQueryText("make friend", function (Nutgram $bot){
+$bot->onInlineQueryText("friend", function (Nutgram $bot){
     $deeplink = new DeepLink();
     $deep_link = $deeplink->start('@shtrafnaya_bot', $bot->userId());
     $uniqueId = "make_friend_".TIME_NOW;

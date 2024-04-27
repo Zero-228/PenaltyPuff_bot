@@ -167,7 +167,7 @@ function makeFriend($user_from, $user_to, $timeNow) {
     // Закрытие соединения с базой данных
     mysqli_close($dbCon);
 
-    $keyboard = InlineKeyboardMarkup::make()->addRow(InlineKeyboardButton::make(msg('invite_friend', lang($userId)), null, null, null, 'make friend'));
+    $keyboard = InlineKeyboardMarkup::make()->addRow(InlineKeyboardButton::make(msg('invite_friend', lang($userId)), null, null, null, 'friend'));
 
     foreach ($friends_info as $row) {
         $msg = $row['first_name']."  ( ".$row['username']." )";
