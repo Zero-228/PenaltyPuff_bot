@@ -88,11 +88,6 @@ $bot->onCallbackQueryData('callback_change_lang_to {param}', function (Nutgram $
     $bot->answerCallbackQuery();
 });
 
-$bot->onCallbackQueryData('callback_invite_friend', function (Nutgram $bot) {
-    $bot->sendMessage(msg('WIP', lang($bot->userId())));
-    $bot->answerCallbackQuery();
-});
-
 $bot->onCallbackQueryData('callback_view_friend_info {friendId}', function (Nutgram $bot, $friendId) {
     $lang = lang($bot->userId());
     $inlineKeyboard = InlineKeyboardMarkup::make()->addRow(InlineKeyboardButton::make(msg('prescribe_puff', $lang), null,null, 'callback_prescribe '.$friendId))->addRow(InlineKeyboardButton::make(msg('warn', $lang), null,null, 'callback_warn '.$friendId),InlineKeyboardButton::make(msg('remove_friend', $lang), null,null, 'callback_remove_friend '.$friendId))->addRow(InlineKeyboardButton::make(msg('cancel', $lang), null,null, 'callback_cancel'));
@@ -112,7 +107,9 @@ $bot->onCallbackQueryData('callback_warn {friendId}', function (Nutgram $bot, $f
 });
 
 $bot->onCallbackQueryData('callback_remove_friend {friendId}', function (Nutgram $bot, $friendId) {
-    $bot->sendMessage(msg('WIP', lang($bot->userId())));
+    removeFriend($bot->userId(), $friendId);
+    $bot->deleteMessage($bot->userId(),$bot->messageId());
+    $bot->sendMessage(msg('unfriend', lang($bot->userId())));
     $bot->answerCallbackQuery();
 });
 
@@ -140,7 +137,8 @@ $bot->onMessage(function (Nutgram $bot) {
             $bot->sendMessage(msg('no_friends', $lang), reply_markup: $inlineKeyboard);
         } else {
             $friend_keyboard = showFriends($bot->userId());
-            $bot->sendMessage("You have ".$friends." friends", reply_markup: $friend_keyboard);
+            $msg = msg('friends_quant', lang($bot->userId())).$friends.msg('invite_using_btn_below', lang($bot->userId()));
+            $bot->sendMessage($msg, reply_markup: $friend_keyboard);
         }
     }
     elseif (str_contains($text, msg('status', $lang))) {

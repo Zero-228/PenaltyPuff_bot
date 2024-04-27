@@ -138,33 +138,19 @@ function makeFriend($user_from, $user_to, $timeNow) {
     }
     mysqli_close($dbCon);
 }function showFriends($userId) {
-    // Установка соединения с базой данных
     $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
-
-    // Запрос к таблице friend_request для получения друзей пользователя
     $friends_query = mysqli_query($dbCon, "SELECT * FROM friend_request WHERE (user_from='$userId' OR user_to='$userId') AND status='friends'");
-
-    // Массив для хранения информации о друзьях
     $friends_info = array();
-
-    // Обработка результатов запроса
     while ($friend = mysqli_fetch_assoc($friends_query)) {
-        // Определение id друга
         $friend_id = ($friend['user_from'] == $userId) ? $friend['user_to'] : $friend['user_from'];
-
-        // Запрос к таблице user для получения информации о друге
         $user_query = mysqli_query($dbCon, "SELECT firstName, username FROM user WHERE userId='$friend_id'");
         $user_info = mysqli_fetch_assoc($user_query);
-
-        // Добавление информации о друге в массив
         $friends_info[] = array(
             'id' => $friend_id,
             'first_name' => $user_info['firstName'],
             'username' => $user_info['username']
         );
     }
-
-    // Закрытие соединения с базой данных
     mysqli_close($dbCon);
 
     $keyboard = InlineKeyboardMarkup::make()->addRow(InlineKeyboardButton::make(msg('invite_friend', lang($userId)), null, null, null, 'friend'));
@@ -177,6 +163,14 @@ function makeFriend($user_from, $user_to, $timeNow) {
     $keyboard->addRow(InlineKeyboardButton::make(msg('cancel', lang($userId)), null,null, 'callback_cancel'));
 
     return $keyboard;
+}
+
+function removeFriend($userId, $friendId) {
+    $timeNow = TIME_NOW;
+    $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+    $query = mysqli_query($dbCon, "UPDATE friend_request SET status='unfriend' AND modified_at='$timeNow' WHERE (user_from='$userId' AND user_to='$friendId') OR (user_to='$userId' AND user_from='$friendId')");
+    mysqli_close($dbCon);
+    return true;
 }
 
 ?>
