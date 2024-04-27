@@ -173,4 +173,70 @@ function removeFriend($userId, $friendId) {
     return true;
 }
 
+function prescribePuff($userId, $friendId) {
+    $timeNow = TIME_NOW;
+    if ($userId!=$friendId) {
+        $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+    
+        $checkPuffs = mysqli_query($dbCon, "SELECT MAX(prescribed_at) AS latest_prescribed_at FROM puff WHERE userFrom = '$userId' AND userTo = '$friendId'");
+        
+        if ($checkPuffs && mysqli_num_rows($checkPuffs) > 0) {
+            $row = mysqli_fetch_assoc($checkPuffs); 
+            $latestPrescribedAt = strtotime($row['latest_prescribed_at']);
+            
+            if ($timeNow - $latestPrescribedAt < 180) {
+                return "delay";
+            } else {
+                $query = mysqli_query($dbCon, "INSERT INTO puff (userFrom, userTo, status, modified_at, prescribed_at) VALUES ('$userId', '$friendId', 'pending', '$timeNow', '$timeNow')");
+                return "success";
+            }
+        } else {
+            $query = mysqli_query($dbCon, "INSERT INTO puff (userFrom, userTo, status, modified_at, prescribed_at) VALUES ('$userId', '$friendId', 'pending', '$timeNow', '$timeNow')");
+            return "success";
+        }
+        mysqli_close($dbCon);
+    } else {
+        return "self";
+    }
+}
+
+function prescribePuffFriend($userId) {
+    $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+    $friends_query = mysqli_query($dbCon, "SELECT * FROM friend_request WHERE (user_from='$userId' OR user_to='$userId') AND status='friends'");
+    $friends_info = array();
+    while ($friend = mysqli_fetch_assoc($friends_query)) {
+        $friend_id = ($friend['user_from'] == $userId) ? $friend['user_to'] : $friend['user_from'];
+        $user_query = mysqli_query($dbCon, "SELECT firstName, username FROM user WHERE userId='$friend_id'");
+        $user_info = mysqli_fetch_assoc($user_query);
+        $friends_info[] = array(
+            'id' => $friend_id,
+            'first_name' => $user_info['firstName'],
+            'username' => $user_info['username']
+        );
+    }
+    mysqli_close($dbCon);
+
+    $keyboard = InlineKeyboardMarkup::make();
+    foreach ($friends_info as $row) {
+        $msg = $row['first_name']."  ( ".$row['username']." )";
+        $keyboard->addRow(InlineKeyboardButton::make($msg, null,null, 'callback_prescribe '.$row['id']));
+    }
+    $keyboard->addRow(InlineKeyboardButton::make(msg('cancel', lang($userId)), null,null, 'callback_cancel'));
+
+    return $keyboard;
+}
+
+function getUsername($userId){
+    $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+    $username = mysqli_query($dbCon, "SELECT username FROM user WHERE userId='$userId'");
+    if ($username) {
+        $username = mysqli_fetch_assoc($username);
+        return $username['username'];
+    } else {
+        return msg("friend", $bot->userId());
+    }
+    mysqli_close($dbCon);
+}
+
+
 ?>

@@ -97,7 +97,22 @@ $bot->onCallbackQueryData('callback_view_friend_info {friendId}', function (Nutg
 });
 
 $bot->onCallbackQueryData('callback_prescribe {friendId}', function (Nutgram $bot, $friendId) {
-    $bot->sendMessage(msg('WIP', lang($bot->userId())));
+    $username = getUsername($bot->userId());
+    $prescribe = prescribePuff($bot->userId(), $friendId);
+    if ($prescribe == "success") {
+        $bot->deleteMessage($bot->userId(),$bot->messageId());
+        $bot->sendMessage(msg('prescribe_success', lang($bot->userId())));
+    } elseif ($prescribe == "self") {
+        $friendLang = lang($friendId);
+        $puffId = 0;
+        $inlineKeyboard = InlineKeyboardMarkup::make()->addRow(InlineKeyboardButton::make(msg('puff_decline', $friendLang), null,null, 'callback_puff_decline '.$puffId),InlineKeyboardButton::make(msg('puff_approve', $friendLang), null,null, 'callback_puff_approve '.$puffId))->addRow(InlineKeyboardButton::make(msg('cancel', $friendLang), null,null, 'callback_cancel'));
+        $bot->sendMessage($username.msg('prescribed_puff', $friendLang), chat_id: $friendId, reply_markup: $inlineKeyboard);
+        $bot->deleteMessage($bot->userId(),$bot->messageId());
+        $bot->sendMessage(msg('prescribe_self', lang($bot->userId())));
+    } elseif ($prescribe == "delay") {
+        $bot->deleteMessage($bot->userId(),$bot->messageId());
+        $bot->sendMessage(msg('prescribe_delay', lang($bot->userId())));
+    }
     $bot->answerCallbackQuery();
 });
 
@@ -110,6 +125,16 @@ $bot->onCallbackQueryData('callback_remove_friend {friendId}', function (Nutgram
     removeFriend($bot->userId(), $friendId);
     $bot->deleteMessage($bot->userId(),$bot->messageId());
     $bot->sendMessage(msg('unfriend', lang($bot->userId())));
+    $bot->answerCallbackQuery();
+});
+
+$bot->onCallbackQueryData('callback_puff_decline {puffId}', function (Nutgram $bot, $puffId) {
+    $bot->sendMessage(msg('WIP', lang($bot->userId())));
+    $bot->answerCallbackQuery();
+});
+
+$bot->onCallbackQueryData('callback_puff_approve {puffId}', function (Nutgram $bot, $puffId) {
+    $bot->sendMessage(msg('WIP', lang($bot->userId())));
     $bot->answerCallbackQuery();
 });
 
@@ -127,7 +152,8 @@ $bot->onMessage(function (Nutgram $bot) {
         $bot->sendMessage(msg('WIP', $lang));
     }
     elseif (str_contains($text, msg('prescribe', $lang))) {
-        $bot->sendMessage(msg('WIP', $lang));
+        $prescribePuffKeyboard = prescribePuffFriend($bot->userId());
+        $bot->sendMessage(msg('choose_friend', $lang), reply_markup: $prescribePuffKeyboard);
     }
     elseif (str_contains($text, msg('frends', $lang))) {
         $friends = findFriends($bot->userId());
