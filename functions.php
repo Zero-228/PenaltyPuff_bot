@@ -107,15 +107,7 @@ function constructStatus($userId, $language = null) {
 function findFriends($userId) {
     $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
     $friends = mysqli_query($dbCon, "SELECT * FROM friend_request WHERE (user_from='$userId' AND status='friends') OR (user_to='$userId' AND status='friends')");
-    $res = "";
-
-    foreach (mysqli_fetch_assoc($friends) as $row) {
-        $res .= " ".$row;
-    }
-
-    error_log($res);
     $num_rows = mysqli_num_rows($friends);
-    error_log($num_rows);
     if ($num_rows==0) {
         return 0;
     } else {
@@ -175,8 +167,7 @@ function makeFriend($user_from, $user_to, $timeNow) {
     // Закрытие соединения с базой данных
     mysqli_close($dbCon);
 
-    $deep_link = "https://t.me/".BOT_USERNAME."?start=".$userId;
-    $keyboard = InlineKeyboardMarkup::make()->addRow(InlineKeyboardButton::make(msg('invite_friend', lang($userId)), null, null, null, $deep_link));
+    $keyboard = InlineKeyboardMarkup::make()->addRow(InlineKeyboardButton::make(msg('invite_friend', lang($userId)), null, null, null, 'make friend'));
 
     foreach ($friends_info as $row) {
         $msg = $row['first_name']."  ( ".$row['username']." )";

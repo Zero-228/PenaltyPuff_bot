@@ -7,6 +7,7 @@ require 'localization.php';
 
 use SergiX44\Nutgram\Nutgram;
 use SergiX44\Nutgram\RunningMode\Webhook;
+use SergiX44\Nutgram\Support\DeepLink;
 use SergiX44\Nutgram\Telegram\Types\Keyboard\InlineKeyboardMarkup;
 use SergiX44\Nutgram\Telegram\Types\Keyboard\InlineKeyboardButton;
 
@@ -116,9 +117,8 @@ $bot->onMessage(function (Nutgram $bot) {
     }
     elseif (str_contains($text, msg('frends', $lang))) {
         $friends = findFriends($bot->userId());
-        $deep_link = "https://t.me/".BOT_USERNAME."?start=".$bot->userId();
         $inlineKeyboard = InlineKeyboardMarkup::make()
-        ->addRow(InlineKeyboardButton::make(msg('invite_friend', lang($bot->userId())), null, null, null, $deep_link))->addRow(InlineKeyboardButton::make(msg('cancel', lang($bot->userId())), null,null, 'callback_cancel'));
+        ->addRow(InlineKeyboardButton::make(msg('invite_friend', lang($bot->userId())), null, null, null, 'make friend'))->addRow(InlineKeyboardButton::make(msg('cancel', lang($bot->userId())), null,null, 'callback_cancel'));
         if ($friends==0) {
             $bot->sendMessage(msg('no_friends', $lang), reply_markup: $inlineKeyboard);
         } else {
@@ -138,6 +138,38 @@ $bot->onMessage(function (Nutgram $bot) {
         $bot->sendMessage("You send: ".$text);
     }
 });
+
+$bot->onInlineQueryText("make friend", function (Nutgram $bot){
+    $deeplink = new DeepLink();
+    $deep_link = $deeplink->start('@shtrafnaya_bot', $bot->userId());
+    $uniqueId = "make_friend_".TIME_NOW;
+    $response = [
+        [
+            'type'=>'article',
+            'id'=>$uniqueId,
+            'title'=>msg('inline_invite_friend', lang($bot->userId())),
+            'input_message_content'=> [
+                'message_text' => $deep_link,
+            ],
+        ],
+    ];
+    $bot->answerInlineQuery($response);
+});
+
+$bot->onInlineQueryText("prescribe", function (Nutgram $bot){
+    $uniqueId = "prescribe_".TIME_NOW;
+    $response = [
+        [
+            'type'=>'article',
+            'id'=>$uniqueId,
+            'title'=>msg('prescribe_puff', lang($bot->userId())),
+            'input_message_content'=> [
+                'message_text' => msg('WIP', lang($bot->userId())),
+            ],
+        ],
+    ];
+    $bot->answerInlineQuery($response);
+}); 
 
 $bot->run();
 

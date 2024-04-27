@@ -55,6 +55,7 @@ $languages = array(
 		'prescribe_puff' => '🌳 Prescribe puff 💨',
 		'warn' => '⚠️ Warn',
 		'remove_friend' => 'Remove 🚫',
+		'inline_invite_friend' => '🙋‍♂️ Invite a friend',
 	),
 	'ru' => array(
 		'welcome' => 'Добро пожаловать',
@@ -83,6 +84,7 @@ $languages = array(
 		'prescribe_puff' => '🌳 Выписать штрафную 💨',
 		'warn' => '⚠️ Жалоба',
 		'remove_friend' => 'Удалить 🚫',
+		'inline_invite_friend' => '🙋‍♂️ Пригласить друга',
 	),
 	'uk' => array(
 		'welcome' => 'Ласкаво просимо',
@@ -111,6 +113,7 @@ $languages = array(
 		'prescribe_puff' => '🌳 Виписати штрафну 💨',
 		'warn' => '⚠️ Скарга',
 		'remove_friend' => 'Видалити 🚫',
+		'inline_invite_friend' => '🙋‍♂️ Запросити друга',
 	),
 );
 
