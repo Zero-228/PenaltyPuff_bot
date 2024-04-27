@@ -1,9 +1,11 @@
 <?php 
 
+use SergiX44\Nutgram\Telegram\Types\Keyboard\InlineKeyboardMarkup;
+use SergiX44\Nutgram\Telegram\Types\Keyboard\InlineKeyboardButton;
 use SergiX44\Nutgram\Telegram\Types\Keyboard\ReplyKeyboardMarkup;
 use SergiX44\Nutgram\Telegram\Types\Keyboard\KeyboardButton;
 
-function debug($things, $decode=false, $clear=false) {
+function debug($things, $decode=false, $mysql=false, $clear=false) {
 
     $directory_path = $_SERVER['DOCUMENT_ROOT'] . '/temp';
     $file_path = $directory_path . '/debug.txt';
@@ -74,7 +76,7 @@ function changeLanguage($userId, $newLang) {
 }
 
 function constructMenuButtons($lang) {
-    $keyboard = ReplyKeyboardMarkup::make()
+    $keyboard = ReplyKeyboardMarkup::make(resize_keyboard: true,)
     ->addRow(KeyboardButton::make(msg('approve', $lang)), KeyboardButton::make(msg('prescribe', $lang)),)
     ->addRow(KeyboardButton::make(msg('frends', $lang)))
     ->addRow(KeyboardButton::make(msg('status', $lang)), KeyboardButton::make(msg('info', $lang)),);
@@ -82,16 +84,20 @@ function constructMenuButtons($lang) {
     return $keyboard;
 }
 
-function constructStatus($userId) {
+function constructStatus($userId, $language = null) {
     $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
     $user = mysqli_fetch_assoc(mysqli_query($dbCon, "SELECT * FROM user WHERE userId='$userId'"));
     if ($user['username']=='') {
         $username = $user['first_name'].' '.$user['last_name'];
     } else { $username = $user['username']; }
     $lang = $user['language'];
+    if ($language) {
+        $lang = $language;
+    }
     $registered = substr($user['registeredAt'], 0, 10);
+    $friends = findFriends($userId);
 
-    $status = "=========================\n   📜 User: ".$username."\n=========================\n ".msg('status_frends', $lang).": -1\n\n ".msg('status_acceptedPuffs', $lang).": 0/0\n\n ".msg('status_prescribedPuffs', $lang).": 0\n_____________________________\n ".msg('status_registered', $lang).": ".$registered."\n=========================";    
+    $status = "=========================\n   📜 User: ".$username."\n=========================\n ".msg('status_frends', $lang).": ".$friends."\n\n ".msg('status_acceptedPuffs', $lang).": 0/0\n\n ".msg('status_prescribedPuffs', $lang).": 0\n_____________________________\n ".msg('status_registered', $lang).": ".$registered."\n=========================";    
 
     mysqli_close($dbCon);
 
@@ -101,14 +107,85 @@ function constructStatus($userId) {
 function findFriends($userId) {
     $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
     $friends = mysqli_query($dbCon, "SELECT * FROM friend_request WHERE (user_from='$userId' AND status='friends') OR (user_to='$userId' AND status='friends')");
+    $res = "";
 
+    foreach (mysqli_fetch_assoc($friends) as $row) {
+        $res .= " ".$row;
+    }
+
+    error_log($res);
     $num_rows = mysqli_num_rows($friends);
+    error_log($num_rows);
     if ($num_rows==0) {
         return 0;
     } else {
-        debug(mysqli_fetch_assoc($friends));
+        return $num_rows;
     }
     mysqli_close($dbCon);
+}
+
+
+function makeFriend($user_from, $user_to, $timeNow) {
+    $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+    $check_query = mysqli_query($dbCon, "SELECT * FROM friend_request WHERE (user_from='$user_to' AND user_to='$user_from' AND status='friends') OR (user_to='$user_to' AND user_from='$user_from' AND status='friends')");
+    $existing_row = mysqli_fetch_assoc($check_query);
+
+    if ($existing_row) {
+        return "already friends";
+    } else {
+        $check_query = mysqli_query($dbCon, "SELECT * FROM friend_request WHERE (user_from='$user_from' AND user_to='$user_to') OR (user_to='$user_from' AND user_from='$user_to')");
+        $existing_row = mysqli_fetch_assoc($check_query);
+
+        if ($existing_row) {
+            $update_query = mysqli_query($dbCon, "UPDATE friend_request SET status='friends' AND modified_at='$timeNow' WHERE (user_from='$user_from' AND user_to='$user_to') OR (user_to='$user_from' AND user_from='$user_to')");
+            return "updated (".$user_from." and ".$user_to.")";
+        } else {
+            $newFriend = mysqli_query($dbCon, "INSERT INTO friend_request (user_from, user_to, status, modified_at, created_at) VALUES ('$user_from', '$user_to', 'friends', '$timeNow', '$timeNow')");
+            return "new friends ".$user_from." and ".$user_to;
+        }
+    }
+    mysqli_close($dbCon);
+}function showFriends($userId) {
+    // Установка соединения с базой данных
+    $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+
+    // Запрос к таблице friend_request для получения друзей пользователя
+    $friends_query = mysqli_query($dbCon, "SELECT * FROM friend_request WHERE (user_from='$userId' OR user_to='$userId') AND status='friends'");
+
+    // Массив для хранения информации о друзьях
+    $friends_info = array();
+
+    // Обработка результатов запроса
+    while ($friend = mysqli_fetch_assoc($friends_query)) {
+        // Определение id друга
+        $friend_id = ($friend['user_from'] == $userId) ? $friend['user_to'] : $friend['user_from'];
+
+        // Запрос к таблице user для получения информации о друге
+        $user_query = mysqli_query($dbCon, "SELECT firstName, username FROM user WHERE userId='$friend_id'");
+        $user_info = mysqli_fetch_assoc($user_query);
+
+        // Добавление информации о друге в массив
+        $friends_info[] = array(
+            'id' => $friend_id,
+            'first_name' => $user_info['firstName'],
+            'username' => $user_info['username']
+        );
+    }
+
+    // Закрытие соединения с базой данных
+    mysqli_close($dbCon);
+
+    $deep_link = "https://t.me/".BOT_USERNAME."?start=".$userId;
+    $keyboard = InlineKeyboardMarkup::make()->addRow(InlineKeyboardButton::make(msg('invite_friend', lang($userId)), null, null, null, $deep_link));
+
+    foreach ($friends_info as $row) {
+        $msg = $row['first_name']."  ( ".$row['username']." )";
+        $keyboard->addRow(InlineKeyboardButton::make($msg, null,null, 'callback_view_friend_info '.$row['id']));
+    }
+
+    $keyboard->addRow(InlineKeyboardButton::make(msg('cancel', lang($userId)), null,null, 'callback_cancel'));
+
+    return $keyboard;
 }
 
 ?>

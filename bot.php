@@ -14,15 +14,43 @@ $bot = new Nutgram(BOT_TOKEN);
 $bot->setRunningMode(Webhook::class);
 $bot->setWebhook(WEBHOOK_URL);
 
-$bot->onCommand('start', function(Nutgram $bot) {
+$bot->onCommand('start {referral}', function(Nutgram $bot, $referral = null) {
     if (checkUser($bot->userId()) == 'no_such_user') {
         $user_info = get_object_vars($bot->user());
         createUser($user_info);
         createLog(TIME_NOW, 'user', $bot->userId(), 'registering', '/start');
         $bot->sendMessage(msg('welcome', lang($bot->userId())), reply_markup: constructMenuButtons(lang($bot->userId())));
+        if ($referral) {
+            $newFriend = makeFriend($referral, $bot->userId(), TIME_NOW);
+            if (str_contains($newFriend, "new friends")) {
+                $bot->sendMessage(msg('new_friends', lang($bot->userId())));
+                createLog(TIME_NOW, 'user', $bot->userId(), 'friendship', $newFriend);
+            } elseif ($newFriend=="already friends") {
+                $bot->sendMessage(msg('already_friends', lang($bot->userId())));
+            } elseif (str_contains($newFriend, "updated")) {
+                createLog(TIME_NOW, 'user', $bot->userId(), 'friendship', $newFriend);
+                $bot->sendMessage(msg('updated_friends', lang($bot->userId())));
+            } else {
+                $bot->sendMessage('Some strange shit');
+            }
+        }
     } elseif (checkUser($bot->userId()) == 'one_user') {
         createLog(TIME_NOW, 'user', $bot->userId(), 'command', '/start');
         $bot->sendMessage(msg('welcome_back', lang($bot->userId())), reply_markup: constructMenuButtons(lang($bot->userId())));
+        if ($referral) {
+            $newFriend = makeFriend($referral, $bot->userId(), TIME_NOW);
+            if (str_contains($newFriend, "new friends")) {
+                $bot->sendMessage(msg('new_friends', lang($bot->userId())));
+                createLog(TIME_NOW, 'user', $bot->userId(), 'friendship', $newFriend);
+            } elseif ($newFriend=="already friends") {
+                $bot->sendMessage(msg('already_friends', lang($bot->userId())));
+            } elseif (str_contains($newFriend, "updated")) {
+                createLog(TIME_NOW, 'user', $bot->userId(), 'friendship', $newFriend);
+                $bot->sendMessage(msg('updated_friends', lang($bot->userId())));
+            } else {
+                $bot->sendMessage('Some strange shit');
+            }
+        }
     } else {
         $bot->sendMessage('WTF are you?');
     }
@@ -47,6 +75,29 @@ $bot->onCallbackQueryData('callback_invite_friend', function (Nutgram $bot) {
     $bot->answerCallbackQuery();
 });
 
+$bot->onCallbackQueryData('callback_view_friend_info {friendId}', function (Nutgram $bot, $friendId) {
+    $lang = lang($bot->userId());
+    $inlineKeyboard = InlineKeyboardMarkup::make()->addRow(InlineKeyboardButton::make(msg('prescribe_puff', $lang), null,null, 'callback_prescribe '.$friendId))->addRow(InlineKeyboardButton::make(msg('warn', $lang), null,null, 'callback_warn '.$friendId),InlineKeyboardButton::make(msg('remove_friend', $lang), null,null, 'callback_remove_friend '.$friendId))->addRow(InlineKeyboardButton::make(msg('cancel', $lang), null,null, 'callback_cancel'));
+    $bot->deleteMessage($bot->userId(),$bot->messageId());
+    $bot->sendMessage(constructStatus($friendId, $lang), reply_markup:$inlineKeyboard);
+    $bot->answerCallbackQuery();
+});
+
+$bot->onCallbackQueryData('callback_prescribe {friendId}', function (Nutgram $bot, $friendId) {
+    $bot->sendMessage(msg('WIP', lang($bot->userId())));
+    $bot->answerCallbackQuery();
+});
+
+$bot->onCallbackQueryData('callback_warn {friendId}', function (Nutgram $bot, $friendId) {
+    $bot->sendMessage(msg('WIP', lang($bot->userId())));
+    $bot->answerCallbackQuery();
+});
+
+$bot->onCallbackQueryData('callback_remove_friend {friendId}', function (Nutgram $bot, $friendId) {
+    $bot->sendMessage(msg('WIP', lang($bot->userId())));
+    $bot->answerCallbackQuery();
+});
+
 $bot->onCallbackQueryData('callback_cancel', function (Nutgram $bot) {
     $bot->deleteMessage($bot->userId(),$bot->messageId());
     $bot->sendMessage(msg('canceled', lang($bot->userId())), reply_markup: constructMenuButtons(lang($bot->userId())));
@@ -65,10 +116,14 @@ $bot->onMessage(function (Nutgram $bot) {
     }
     elseif (str_contains($text, msg('frends', $lang))) {
         $friends = findFriends($bot->userId());
+        $deep_link = "https://t.me/".BOT_USERNAME."?start=".$bot->userId();
         $inlineKeyboard = InlineKeyboardMarkup::make()
-        ->addRow(InlineKeyboardButton::make(msg('invite_friend', lang($bot->userId())), null, null, 'callback_invite_friend'))->addRow(InlineKeyboardButton::make(msg('cancel', lang($bot->userId())), null,null, 'callback_cancel'));
+        ->addRow(InlineKeyboardButton::make(msg('invite_friend', lang($bot->userId())), null, null, null, $deep_link))->addRow(InlineKeyboardButton::make(msg('cancel', lang($bot->userId())), null,null, 'callback_cancel'));
         if ($friends==0) {
             $bot->sendMessage(msg('no_friends', $lang), reply_markup: $inlineKeyboard);
+        } else {
+            $friend_keyboard = showFriends($bot->userId());
+            $bot->sendMessage("You have ".$friends." friends", reply_markup: $friend_keyboard);
         }
     }
     elseif (str_contains($text, msg('status', $lang))) {

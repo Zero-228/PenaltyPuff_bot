@@ -5,6 +5,7 @@ define("TIME_NOW", $now->format('Y-m-d H:i:s'));
 define("_IMG", $_SERVER['DOCUMENT_ROOT']."/img/");
 
 define("BOT_TOKEN", "");
+define("BOT_USERNAME", "");
 define("WEBHOOK_URL", "");
 define("WEB_APP", "");
 
