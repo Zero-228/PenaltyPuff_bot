@@ -182,17 +182,21 @@ function prescribePuff($userId, $friendId) {
         
         if ($checkPuffs && mysqli_num_rows($checkPuffs) > 0) {
             $row = mysqli_fetch_assoc($checkPuffs); 
-            $latestPrescribedAt = strtotime($row['latest_prescribed_at']);
+            $latestPrescribedAt = strtotime($row['latest_prescribed_at'])+180;
             
-            if ($timeNow - $latestPrescribedAt < 180) {
+            if ($latestPrescribedAt > strtotime($timeNow)) {
                 return "delay";
             } else {
                 $query = mysqli_query($dbCon, "INSERT INTO puff (userFrom, userTo, status, modified_at, prescribed_at) VALUES ('$userId', '$friendId', 'pending', '$timeNow', '$timeNow')");
-                return "success";
+                $checkPuffs2 = mysqli_query($dbCon, "SELECT puffId FROM puff WHERE userFrom = '$userId' AND userTo = '$friendId' AND prescribed_at='$timeNow'");
+                $row = mysqli_fetch_assoc($checkPuffs2); 
+                return "success ".$row['puffId'];
             }
         } else {
             $query = mysqli_query($dbCon, "INSERT INTO puff (userFrom, userTo, status, modified_at, prescribed_at) VALUES ('$userId', '$friendId', 'pending', '$timeNow', '$timeNow')");
-            return "success";
+            $checkPuffs2 = mysqli_query($dbCon, "SELECT puffId FROM puff WHERE userFrom = '$userId' AND userTo = '$friendId' AND prescribed_at='$timeNow'");
+            $row = mysqli_fetch_assoc($checkPuffs2); 
+            return "success ".$row['puffId'];
         }
         mysqli_close($dbCon);
     } else {
@@ -224,6 +228,28 @@ function prescribePuffFriend($userId) {
     $keyboard->addRow(InlineKeyboardButton::make(msg('cancel', lang($userId)), null,null, 'callback_cancel'));
 
     return $keyboard;
+}
+
+function updatePuff($puffId, $status) {
+    $timeNow = TIME_NOW;
+    $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+    if ($status=='decline') {
+        $query = mysqli_query($dbCon, "UPDATE puff SET status='$status' AND modified_at='$timeNow' WHERE puffId='$puffId'");
+    } elseif ($status=='approve') {
+        $checkPuffs = mysqli_query($dbCon, "SELECT prescribed_at FROM puff WHERE puffId='$puffId'");
+        if ($checkPuffs && mysqli_num_rows($checkPuffs) > 0) {
+            $row = mysqli_fetch_assoc($checkPuffs); 
+            $latestPrescribedAt = strtotime($row['prescribed_at'])+90;
+            if ($latestPrescribedAt > strtotime($timeNow)) {
+                return "delay";
+            } else {
+                $query = mysqli_query($dbCon, "UPDATE puff SET status='$status' AND modified_at='$timeNow' WHERE puffId='$puffId'");
+            }
+        } else {
+            error_log("Error in function updatePuff()");
+        }
+    }
+    mysqli_close($dbCon);
 }
 
 function getUsername($userId){

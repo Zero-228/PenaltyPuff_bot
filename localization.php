@@ -67,6 +67,11 @@ $languages = array(
 		'puff_decline' => '🚫 Decline',
 		'puff_approve' => 'Approve ✅',
 		'choose_friend' => "Choose a friend to whom you \nwant to prescribe penalty puff",
+		'declined_puff' => " declined your penalty puff 🚫",
+		'puff_declined' => "🚫 You declined penalty puff. Your friend will be notified!",
+		'approved_puff' => " approved your penalty puff ✅",
+		'puff_approved' => "✅ You approved penalty puff 👍",
+		'puff_approve_delay' => "⚠️ Not so fast! Smoke it first, then approve.",
 	),
 	'ru' => array(
 		'welcome' => 'Добро пожаловать',
@@ -107,6 +112,11 @@ $languages = array(
 		'puff_decline' => '🚫 Отказаться',
 		'puff_approve' => 'Подтвердить ✅',
 		'choose_friend' => "Выбери друга котоорому ты \nхочешь выписать штрафную",
+		'declined_puff' => " відмовився від твоєї штрафної 🚫",
+		'puff_declined' => "🚫 Ти відмовився від штрафної. Твій друг про це дізнається!",
+		'approved_puff' => " підтвердив твою штрафну ✅",
+		'puff_approved' => "✅ Ти підтвердив штрафну 👍",
+		'puff_approve_delay' => "⚠️ Не так быстро! Сначала скури, потом подтверждай.",
 	),
 	'uk' => array(
 		'welcome' => 'Ласкаво просимо',
@@ -147,6 +157,11 @@ $languages = array(
 		'puff_decline' => '🚫 Відмовитися',
 		'puff_approve' => 'Підтвердити ✅',
 		'choose_friend' => "Обери друга якому ти \nбажаєш виписати штрафну",
+		'declined_puff' => " відмовився від твоєї штрафної 🚫",
+		'puff_declined' => "🚫 Ти відмовився від штрафної. Твій друг про це дізнається!",
+		'approved_puff' => " підтвердив твою штрафну ✅",
+		'puff_approved' => "✅ Ти підтвердив штрафну 👍",
+		'puff_approve_delay' => "⚠️ Не так швидко! Спочатку скури, потім підтверджуй.",
 	),
 );
 
