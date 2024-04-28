@@ -240,7 +240,7 @@ $bot->onMessage(function (Nutgram $bot) {
 $bot->onInlineQueryText("invite", function (Nutgram $bot){
     createLog(TIME_NOW, 'user', $bot->userId(), 'InlineQuery', 'invite');
     $deeplink = new DeepLink();
-    $deep_link = $deeplink->start('@shtrafnaya_bot', $bot->userId());
+    $deep_link = $deeplink->start(BOT_USERNAME, $bot->userId());
     $uniqueId = "make_friend_".TIME_NOW;
     $response = [
         [
