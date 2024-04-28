@@ -215,7 +215,7 @@ $bot->onMessage(function (Nutgram $bot) {
     elseif (str_contains($text, msg('frends', $lang))) {
         $friends = findFriends($bot->userId());
         $inlineKeyboard = InlineKeyboardMarkup::make()
-        ->addRow(InlineKeyboardButton::make(msg('invite_friend', lang($bot->userId())), null, null, null, 'friend'))->addRow(InlineKeyboardButton::make(msg('cancel', lang($bot->userId())), null,null, 'callback_cancel'));
+        ->addRow(InlineKeyboardButton::make(msg('invite_friend', lang($bot->userId())), null, null, null, 'invite'))->addRow(InlineKeyboardButton::make(msg('cancel', lang($bot->userId())), null,null, 'callback_cancel'));
         if ($friends==0) {
             $bot->sendMessage(msg('no_friends', $lang), reply_markup: $inlineKeyboard);
         } else {
@@ -237,8 +237,8 @@ $bot->onMessage(function (Nutgram $bot) {
     }
 });
 
-$bot->onInlineQueryText("friend", function (Nutgram $bot){
-    createLog(TIME_NOW, 'user', $bot->userId(), 'InlineQuery', 'friend');
+$bot->onInlineQueryText("invite", function (Nutgram $bot){
+    createLog(TIME_NOW, 'user', $bot->userId(), 'InlineQuery', 'invite');
     $deeplink = new DeepLink();
     $deep_link = $deeplink->start('@shtrafnaya_bot', $bot->userId());
     $uniqueId = "make_friend_".TIME_NOW;

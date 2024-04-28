@@ -103,8 +103,15 @@ function constructStatus($userId, $language = null) {
     }
     $registered = substr($user['registeredAt'], 0, 10);
     $friends = findFriends($userId);
+    $checkAllPuffs = mysqli_query($dbCon, "SELECT puffId FROM puff WHERE userTo='$userId'");
+    $num_rows_all_puff = mysqli_num_rows($checkAllPuffs);
+    $checkAcceptedPuffs = mysqli_query($dbCon, "SELECT puffId FROM puff WHERE userTo='$userId' AND status='approve'");
+    $num_rows_accepted_puff = mysqli_num_rows($checkAcceptedPuffs);
+    $puffs = $num_rows_accepted_puff."/".$num_rows_all_puff;
+    $checkPresctibedPuffs = mysqli_query($dbCon, "SELECT puffId FROM puff WHERE userFrom='$userId'");
+    $num_rows_prescribed_puff = mysqli_num_rows($checkPresctibedPuffs);
 
-    $status = "=========================\n   📜 User: ".$username."\n=========================\n ".msg('status_frends', $lang).": ".$friends."\n\n ".msg('status_acceptedPuffs', $lang).": 0/0\n\n ".msg('status_prescribedPuffs', $lang).": 0\n_____________________________\n ".msg('status_registered', $lang).": ".$registered."\n=========================";    
+    $status = "=========================\n   📜 User: ".$username."\n=========================\n ".msg('status_frends', $lang).": ".$friends."\n\n ".msg('status_acceptedPuffs', $lang).": ".$puffs."\n\n ".msg('status_prescribedPuffs', $lang).": ".$num_rows_prescribed_puff."\n_____________________________\n ".msg('status_registered', $lang).": ".$registered."\n=========================";    
 
     mysqli_close($dbCon);
 
@@ -162,7 +169,7 @@ function showFriends($userId) {
     }
     mysqli_close($dbCon);
 
-    $keyboard = InlineKeyboardMarkup::make()->addRow(InlineKeyboardButton::make(msg('invite_friend', lang($userId)), null, null, null, 'friend'));
+    $keyboard = InlineKeyboardMarkup::make()->addRow(InlineKeyboardButton::make(msg('invite_friend', lang($userId)), null, null, null, 'invite'));
 
     foreach ($friends_info as $row) {
         $msg = $row['first_name']."  ( ".$row['username']." )";
