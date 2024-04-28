@@ -31,7 +31,7 @@ function debug($things, $decode=false, $mysql=false, $clear=false) {
 
 function checkUser($userId){
     $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
-    $row = mysqli_query($dbCon, "SELECT userId FROM user WHERE userId='$userId'");
+    $row = mysqli_query($dbCon, "SELECT role FROM user WHERE userId='$userId'");
     $numRow = mysqli_num_rows($row);
     if ($numRow == 0) { return 'no_such_user'; } 
     elseif ($numRow == 1) { return 'one_user'; } 
@@ -40,13 +40,20 @@ function checkUser($userId){
 }
 
 function createUser($user){
-    $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
-    $username = "";
-    $timeNow = TIME_NOW;
-    if ($user['username']!='') { $username = $user['username']; } 
-    else { $username = $user['first_name']." ".$user['last_name']; }
-    mysqli_query($dbCon, "INSERT INTO user (userId, firstName, lastName, username, language, lastVisit, registeredAt) VALUES ('" . $user['id'] . "', '" . $user['first_name'] . "', '" . $user['last_name'] . "', '" . $username . "', '" . $user['language_code'] . "', '" . $timeNow . "', '" . $timeNow . "')");
-    mysqli_close($dbCon);
+    $checkUser = checkUser($user['id']);
+    if ($checkUser=="no_such_user") {
+        $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+        $username = "";
+        $timeNow = TIME_NOW;
+        if ($user['username']!='') { $username = $user['username']; } 
+        else { $username = $user['first_name']." ".$user['last_name']; }
+        mysqli_query($dbCon, "INSERT INTO user (userId, firstName, lastName, username, language, lastVisit, registeredAt) VALUES ('" . $user['id'] . "', '" . $user['first_name'] . "', '" . $user['last_name'] . "', '" . $username . "', '" . $user['language_code'] . "', '" . $timeNow . "', '" . $timeNow . "')");
+        mysqli_close($dbCon);
+        return true;
+    } else {
+        return false;
+    }
+    
 }
 
 function createLog($timestamp, $entity, $entityId, $context, $message) {
@@ -122,7 +129,7 @@ function makeFriend($user_from, $user_to, $timeNow) {
     $check_query = mysqli_query($dbCon, "SELECT * FROM friend_request WHERE (user_from='$user_to' AND user_to='$user_from' AND status='friends') OR (user_to='$user_to' AND user_from='$user_from' AND status='friends')");
     $existing_row = mysqli_fetch_assoc($check_query);
 
-    if ($existing_row) {
+    if ($existing_row || $user_from==$user_to) {
         return "already friends";
     } else {
         $check_query = mysqli_query($dbCon, "SELECT * FROM friend_request WHERE (user_from='$user_from' AND user_to='$user_to') OR (user_to='$user_from' AND user_from='$user_to')");
@@ -137,7 +144,9 @@ function makeFriend($user_from, $user_to, $timeNow) {
         }
     }
     mysqli_close($dbCon);
-}function showFriends($userId) {
+}
+
+function showFriends($userId) {
     $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
     $friends_query = mysqli_query($dbCon, "SELECT * FROM friend_request WHERE (user_from='$userId' OR user_to='$userId') AND status='friends'");
     $friends_info = array();
@@ -168,9 +177,21 @@ function makeFriend($user_from, $user_to, $timeNow) {
 function removeFriend($userId, $friendId) {
     $timeNow = TIME_NOW;
     $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
-    $query = mysqli_query($dbCon, "UPDATE friend_request SET status='unfriend' AND modified_at='$timeNow' WHERE (user_from='$userId' AND user_to='$friendId') OR (user_to='$userId' AND user_from='$friendId')");
+    $query = mysqli_query($dbCon, "UPDATE friend_request SET status='unfriend', modified_at='$timeNow' WHERE (user_from='$userId' AND user_to='$friendId') OR (user_to='$userId' AND user_from='$friendId')");
     mysqli_close($dbCon);
     return true;
+}
+
+function warnFriend($userId, $friendId, $reason) {
+    $timeNow = TIME_NOW;
+    $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+    try {
+        $query = mysqli_query($dbCon, "INSERT INTO warn (userFrom, userTo, reason, warndAt) VALUES ('$userId', '$friendId', '$reason', '$timeNow')");
+        return true;
+    } catch (Exception $e) {
+        return false;
+    }
+    mysqli_close($dbCon);
 }
 
 function prescribePuff($userId, $friendId) {
@@ -234,7 +255,7 @@ function updatePuff($puffId, $status) {
     $timeNow = TIME_NOW;
     $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
     if ($status=='decline') {
-        $query = mysqli_query($dbCon, "UPDATE puff SET status='$status' AND modified_at='$timeNow' WHERE puffId='$puffId'");
+        $query = mysqli_query($dbCon, "UPDATE puff SET status='$status', modified_at='$timeNow' WHERE puffId='$puffId'");
     } elseif ($status=='approve') {
         $checkPuffs = mysqli_query($dbCon, "SELECT prescribed_at FROM puff WHERE puffId='$puffId'");
         if ($checkPuffs && mysqli_num_rows($checkPuffs) > 0) {
@@ -243,7 +264,7 @@ function updatePuff($puffId, $status) {
             if ($latestPrescribedAt > strtotime($timeNow)) {
                 return "delay";
             } else {
-                $query = mysqli_query($dbCon, "UPDATE puff SET status='$status' AND modified_at='$timeNow' WHERE puffId='$puffId'");
+                $query = mysqli_query($dbCon, "UPDATE puff SET status='$status', modified_at='$timeNow' WHERE puffId='$puffId'");
             }
         } else {
             error_log("Error in function updatePuff()");

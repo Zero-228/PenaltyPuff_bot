@@ -72,6 +72,10 @@ $languages = array(
 		'approved_puff' => " approved your penalty puff ✅",
 		'puff_approved' => "✅ You approved penalty puff 👍",
 		'puff_approve_delay' => "⚠️ Not so fast! Smoke it first, then approve.",
+		'warn_user' => "🛂 Choose the warn reason",
+		'warn_btn_falseApr' => '⚠️ False approvement',
+		'warn_btn_spam' => '📢 Spam',
+		'warn_sent' => "✅ Warn sent to administration. \nThank you for your help 😄",
 	),
 	'ru' => array(
 		'welcome' => 'Добро пожаловать',
@@ -117,6 +121,10 @@ $languages = array(
 		'approved_puff' => " підтвердив твою штрафну ✅",
 		'puff_approved' => "✅ Ти підтвердив штрафну 👍",
 		'puff_approve_delay' => "⚠️ Не так быстро! Сначала скури, потом подтверждай.",
+		'warn_user' => "🛂 Выбери причину жалобы",
+		'warn_btn_falseApr' => '⚠️ Ложное подтвержение',
+		'warn_btn_spam' => '📢 Спам',
+		'warn_sent' => "✅ Жалоба отправлена администрации. \nСпасибо за вашу помощь 😄",
 	),
 	'uk' => array(
 		'welcome' => 'Ласкаво просимо',
@@ -162,6 +170,10 @@ $languages = array(
 		'approved_puff' => " підтвердив твою штрафну ✅",
 		'puff_approved' => "✅ Ти підтвердив штрафну 👍",
 		'puff_approve_delay' => "⚠️ Не так швидко! Спочатку скури, потім підтверджуй.",
+		'warn_user' => "🛂 Обери причину скарги",
+		'warn_btn_falseApr' => '⚠️ Неправдиві підтвердження',
+		'warn_btn_spam' => '📢 Спам',
+		'warn_sent' => "✅ Скарга відправоена до адміністрації. \nДякуємо за вашу допомогу 😄",
 	),
 );
 

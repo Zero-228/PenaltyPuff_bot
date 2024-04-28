@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: 127.0.0.1
--- Время создания: Апр 26 2024 г., 02:17
+-- Время создания: Апр 28 2024 г., 14:20
 -- Версия сервера: 10.4.32-MariaDB
 -- Версия PHP: 8.2.12
 
@@ -28,18 +28,18 @@ SET time_zone = "+00:00";
 --
 
 CREATE TABLE `friend_request` (
-  `user_from` int(11) NOT NULL,
-  `user_to` int(11) NOT NULL,
-  `status` varchar(8) NOT NULL COMMENT '(friends/denied/unfriend/..)',
+  `user_from` bigint(20) NOT NULL,
+  `user_to` bigint(20) NOT NULL,
+  `status` varchar(8) NOT NULL COMMENT '(friends/denied/unfriend/)',
   `modified_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `created_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- ССЫЛКИ ТАБЛИЦЫ `friend_request`:
---   `user_to`
---       `user` -> `userId`
 --   `user_from`
+--       `user` -> `userId`
+--   `user_to`
 --       `user` -> `userId`
 --
 
@@ -53,7 +53,7 @@ CREATE TABLE `log` (
   `logId` int(11) NOT NULL,
   `createdAt` datetime NOT NULL,
   `entity` varchar(15) NOT NULL COMMENT '(user/bot/admin/..)',
-  `entityId` int(11) NOT NULL,
+  `entityId` bigint(20) NOT NULL,
   `context` varchar(15) NOT NULL COMMENT '(callback/comand/..)',
   `message` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -67,11 +67,34 @@ CREATE TABLE `log` (
 -- --------------------------------------------------------
 
 --
+-- Структура таблицы `puff`
+--
+
+CREATE TABLE `puff` (
+  `puffId` int(11) NOT NULL,
+  `userFrom` bigint(20) NOT NULL,
+  `userTo` bigint(20) NOT NULL,
+  `status` varchar(10) NOT NULL COMMENT '(pending/approved/denied/...)',
+  `modified_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `prescribed_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- ССЫЛКИ ТАБЛИЦЫ `puff`:
+--   `userFrom`
+--       `user` -> `userId`
+--   `userTo`
+--       `user` -> `userId`
+--
+
+-- --------------------------------------------------------
+
+--
 -- Структура таблицы `user`
 --
 
 CREATE TABLE `user` (
-  `userId` int(11) NOT NULL,
+  `userId` bigint(20) NOT NULL,
   `firstName` varchar(30) NOT NULL,
   `lastName` varchar(30) NOT NULL,
   `username` varchar(60) NOT NULL,
@@ -108,6 +131,14 @@ ALTER TABLE `log`
   ADD KEY `entityId` (`entityId`);
 
 --
+-- Индексы таблицы `puff`
+--
+ALTER TABLE `puff`
+  ADD PRIMARY KEY (`puffId`),
+  ADD KEY `userFrom` (`userFrom`),
+  ADD KEY `userTo` (`userTo`);
+
+--
 -- Индексы таблицы `user`
 --
 ALTER TABLE `user`
@@ -124,6 +155,12 @@ ALTER TABLE `log`
   MODIFY `logId` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT для таблицы `puff`
+--
+ALTER TABLE `puff`
+  MODIFY `puffId` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- Ограничения внешнего ключа сохраненных таблиц
 --
 
@@ -131,14 +168,21 @@ ALTER TABLE `log`
 -- Ограничения внешнего ключа таблицы `friend_request`
 --
 ALTER TABLE `friend_request`
-  ADD CONSTRAINT `friend_request_ibfk_1` FOREIGN KEY (`user_to`) REFERENCES `user` (`userId`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `friend_request_ibfk_2` FOREIGN KEY (`user_from`) REFERENCES `user` (`userId`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `friend_request_ibfk_1` FOREIGN KEY (`user_from`) REFERENCES `user` (`userId`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `friend_request_ibfk_2` FOREIGN KEY (`user_to`) REFERENCES `user` (`userId`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Ограничения внешнего ключа таблицы `log`
 --
 ALTER TABLE `log`
-  ADD CONSTRAINT `log_ibfk_1` FOREIGN KEY (`entityId`) REFERENCES `user` (`userId`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+  ADD CONSTRAINT `log_ibfk_1` FOREIGN KEY (`entityId`) REFERENCES `user` (`userId`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Ограничения внешнего ключа таблицы `puff`
+--
+ALTER TABLE `puff`
+  ADD CONSTRAINT `puff_ibfk_1` FOREIGN KEY (`userFrom`) REFERENCES `user` (`userId`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `puff_ibfk_2` FOREIGN KEY (`userTo`) REFERENCES `user` (`userId`) ON DELETE CASCADE ON UPDATE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
