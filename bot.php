@@ -194,7 +194,19 @@ $bot->onMessage(function (Nutgram $bot) {
     $text = $bot->message()->text;
     $lang = lang($bot->userId());
     if (str_contains($text, msg('approve', $lang))) {
-        $bot->sendMessage(msg('WIP', $lang));
+        $check = checkPuff($bot->userId());
+        if ($check) {
+            foreach ($check as $puff) {
+                $inlineKeyboard = InlineKeyboardMarkup::make()->addRow(InlineKeyboardButton::make(msg('puff_decline', $lang), null,null, 'callback_puff_decline '.$puff['puffId'].' '.$puff['userFrom']),InlineKeyboardButton::make(msg('puff_approve', $lang), null,null, 'callback_puff_approve '.$puff['puffId'].' '.$puff['userFrom']))->addRow(InlineKeyboardButton::make(msg('cancel', $lang), null,null, 'callback_cancel'));
+                $username = getUsername($puff['userFrom']);
+                $msg = $username.msg('prescribed_puff', $lang)."\n\n( ".$puff['prescribed_at'].' )';
+                $bot->sendMessage($msg, chat_id: $friendId, reply_markup: $inlineKeyboard);
+                sleep(0.8);
+            }
+        } else {
+            $keyboard = InlineKeyboardMarkup::make()->addRow(InlineKeyboardButton::make(msg('cancel', lang($bot->userId())), null,null, 'callback_cancel'));
+            $bot->sendMessage(msg('no_puffs', $lang), reply_markup: $keyboard);
+        }
     }
     elseif (str_contains($text, msg('prescribe', $lang))) {
         $prescribePuffKeyboard = prescribePuffFriend($bot->userId());

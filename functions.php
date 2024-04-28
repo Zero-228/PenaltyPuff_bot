@@ -273,6 +273,21 @@ function updatePuff($puffId, $status) {
     mysqli_close($dbCon);
 }
 
+function checkPuff($userId) {
+    $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+    $query = "SELECT * FROM puff WHERE userTo='$userId' AND status='pending' ORDER BY prescribed_at DESC LIMIT 5";
+    $result = mysqli_query($dbCon, $query);
+    if ($result) {
+        $puffs = mysqli_fetch_all($result, MYSQLI_ASSOC);
+        return $puffs;
+    } else {
+        error_log("Error in checkPuff: " . mysqli_error($dbCon));
+        return false;
+    }
+    mysqli_close($dbCon);
+}
+
+
 function getUsername($userId){
     $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
     $username = mysqli_query($dbCon, "SELECT username FROM user WHERE userId='$userId'");

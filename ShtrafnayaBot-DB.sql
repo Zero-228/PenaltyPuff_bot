@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: 127.0.0.1
--- Время создания: Апр 28 2024 г., 14:20
+-- Время создания: Апр 29 2024 г., 00:04
 -- Версия сервера: 10.4.32-MariaDB
 -- Версия PHP: 8.2.12
 
@@ -72,8 +72,8 @@ CREATE TABLE `log` (
 
 CREATE TABLE `puff` (
   `puffId` int(11) NOT NULL,
-  `userFrom` bigint(20) NOT NULL,
-  `userTo` bigint(20) NOT NULL,
+  `userFrom` bigint(20) DEFAULT NULL,
+  `userTo` bigint(20) DEFAULT NULL,
   `status` varchar(10) NOT NULL COMMENT '(pending/approved/denied/...)',
   `modified_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `prescribed_at` timestamp NOT NULL DEFAULT current_timestamp()
@@ -112,6 +112,28 @@ CREATE TABLE `user` (
 -- ССЫЛКИ ТАБЛИЦЫ `user`:
 --
 
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы `warn`
+--
+
+CREATE TABLE `warn` (
+  `id` int(11) NOT NULL,
+  `userFrom` bigint(20) DEFAULT NULL,
+  `userTo` bigint(20) NOT NULL,
+  `reason` varchar(50) NOT NULL,
+  `warndAt` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- ССЫЛКИ ТАБЛИЦЫ `warn`:
+--   `userFrom`
+--       `user` -> `userId`
+--   `userTo`
+--       `user` -> `userId`
+--
+
 --
 -- Индексы сохранённых таблиц
 --
@@ -135,14 +157,22 @@ ALTER TABLE `log`
 --
 ALTER TABLE `puff`
   ADD PRIMARY KEY (`puffId`),
-  ADD KEY `userFrom` (`userFrom`),
-  ADD KEY `userTo` (`userTo`);
+  ADD KEY `puff_ibfk_2` (`userTo`),
+  ADD KEY `puff_ibfk_1` (`userFrom`);
 
 --
 -- Индексы таблицы `user`
 --
 ALTER TABLE `user`
   ADD PRIMARY KEY (`userId`);
+
+--
+-- Индексы таблицы `warn`
+--
+ALTER TABLE `warn`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `warn_ibfk_1` (`userFrom`),
+  ADD KEY `warn_ibfk_2` (`userTo`);
 
 --
 -- AUTO_INCREMENT для сохранённых таблиц
@@ -159,6 +189,12 @@ ALTER TABLE `log`
 --
 ALTER TABLE `puff`
   MODIFY `puffId` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT для таблицы `warn`
+--
+ALTER TABLE `warn`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- Ограничения внешнего ключа сохраненных таблиц
@@ -181,8 +217,15 @@ ALTER TABLE `log`
 -- Ограничения внешнего ключа таблицы `puff`
 --
 ALTER TABLE `puff`
-  ADD CONSTRAINT `puff_ibfk_1` FOREIGN KEY (`userFrom`) REFERENCES `user` (`userId`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `puff_ibfk_2` FOREIGN KEY (`userTo`) REFERENCES `user` (`userId`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `puff_ibfk_1` FOREIGN KEY (`userFrom`) REFERENCES `user` (`userId`) ON DELETE SET NULL ON UPDATE CASCADE,
+  ADD CONSTRAINT `puff_ibfk_2` FOREIGN KEY (`userTo`) REFERENCES `user` (`userId`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+--
+-- Ограничения внешнего ключа таблицы `warn`
+--
+ALTER TABLE `warn`
+  ADD CONSTRAINT `warn_ibfk_1` FOREIGN KEY (`userFrom`) REFERENCES `user` (`userId`) ON DELETE SET NULL ON UPDATE CASCADE,
+  ADD CONSTRAINT `warn_ibfk_2` FOREIGN KEY (`userTo`) REFERENCES `user` (`userId`) ON DELETE CASCADE ON UPDATE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
