@@ -182,6 +182,29 @@ $bot->onCallbackQueryData('callback_puff_approve {puffId} {friendId}', function 
         $bot->answerCallbackQuery();
 });
 
+$bot->onCallbackQueryData('callback_support', function (Nutgram $bot) {
+    createLog(TIME_NOW, 'user', $bot->userId(), 'callback', 'support '.$bot->messageId());
+    $bot->deleteMessage($bot->userId(),$bot->messageId());
+    $bot->sendMessage(msg('WIP', lang($bot->userId())));
+    $bot->answerCallbackQuery();
+});
+
+$bot->onCallbackQueryData('callback_donate', function (Nutgram $bot) {
+    createLog(TIME_NOW, 'user', $bot->userId(), 'callback', 'donate');
+    $lang = lang($bot->userId());
+    $bot->deleteMessage($bot->userId(),$bot->messageId());
+    $selectDonationKeyboard = InlineKeyboardMarkup::make()->addRow(InlineKeyboardButton::make(msg('show_wallet', $lang), null, null, 'callback_show_wallet'))->addRow(InlineKeyboardButton::make(msg('cancel', $lang), null,null, 'callback_cancel'));
+    $bot->sendMessage(msg('donation', $lang), reply_markup:$selectDonationKeyboard);
+    $bot->answerCallbackQuery();
+});
+
+$bot->onCallbackQueryData('callback_show_wallet', function (Nutgram $bot) {
+    createLog(TIME_NOW, 'user', $bot->userId(), 'callback', 'show_wallet');
+    $bot->deleteMessage($bot->userId(),$bot->messageId());
+    $bot->sendMessage("UQDtWWRLIE9a8gFZp7NnSlkNMYAIE1N7q7H8kcoS4kLGUiOP");
+    $bot->answerCallbackQuery();
+});
+
 $bot->onCallbackQueryData('callback_cancel', function (Nutgram $bot) {
     createLog(TIME_NOW, 'user', $bot->userId(), 'callback', 'cancel');
     $bot->deleteMessage($bot->userId(),$bot->messageId());
@@ -230,7 +253,13 @@ $bot->onMessage(function (Nutgram $bot) {
         $bot->sendMessage(constructStatus($bot->userId()), reply_markup: $inlineKeyboard);
     }
     elseif (str_contains($text, msg('info', $lang))) {
-        $bot->sendMessage(msg('WIP', $lang));
+        $rand = rand(1, 3);
+        $msg = msg('information', lang($bot->userId())).msg('fact'.$rand, lang($bot->userId()));
+        $keyboard = InlineKeyboardMarkup::make()
+        ->addRow(InlineKeyboardButton::make(msg('support', lang($bot->userId())), null,null, 'callback_support'))
+        ->addRow(InlineKeyboardButton::make(msg('donate', lang($bot->userId())), null,null, 'callback_donate'))
+        ->addRow(InlineKeyboardButton::make(msg('cancel', lang($bot->userId())), null,null, 'callback_cancel'));
+        $bot->sendMessage($msg, reply_markup: $keyboard);
     } 
     else {
         $bot->sendMessage("You send: ".$text);
