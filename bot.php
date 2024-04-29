@@ -281,7 +281,7 @@ $bot->onInlineQueryText("invite", function (Nutgram $bot){
             ],
         ],
     ];
-    $bot->answerInlineQuery($response);
+    $bot->answerInlineQuery($response, is_personal: true);
 });
 
 $bot->run();
