@@ -28,8 +28,11 @@ $bot->onCommand('start {referral}', function(Nutgram $bot, $referral = null) {
             ) {
                 $newFriend = makeFriend($referral, $bot->userId(), TIME_NOW);
                 if (str_contains($newFriend, "new friends")) {
+                    $msg = "🙋‍♂️ ".getUsername($bot->userId()).msg("accepted_friendship", lang($referral));
                     $bot->sendMessage(msg('welcome', $lang)."\n\n".msg('new_friends', $lang), reply_markup: $keyboard);
                     createLog(TIME_NOW, 'user', $bot->userId(), 'friendship', $newFriend);
+                    sleep(2);
+                    $bot->sendMessage($msg, chat_id: $referral);
                 } elseif ($newFriend=="already friends") {
                     $bot->sendMessage(msg('welcome', $lang)."\n\n".msg('already_friends', $lang), reply_markup: $keyboard);
                 } elseif (str_contains($newFriend, "updated")) {

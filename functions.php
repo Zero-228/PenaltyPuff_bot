@@ -172,7 +172,6 @@ function showFriends($userId) {
     $deeplink = new DeepLink();
     $deep_link = $deeplink->start(BOT_USERNAME, $userId);
     $share_link = "https://t.me/share/url?url=".$deep_link;
-    //error_log($share_link);
     $keyboard = InlineKeyboardMarkup::make()
     ->addRow(InlineKeyboardButton::make(msg('invite_friend', lang($userId)), $share_link));
 
