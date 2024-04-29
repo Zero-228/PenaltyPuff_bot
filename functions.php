@@ -4,6 +4,7 @@ use SergiX44\Nutgram\Telegram\Types\Keyboard\InlineKeyboardMarkup;
 use SergiX44\Nutgram\Telegram\Types\Keyboard\InlineKeyboardButton;
 use SergiX44\Nutgram\Telegram\Types\Keyboard\ReplyKeyboardMarkup;
 use SergiX44\Nutgram\Telegram\Types\Keyboard\KeyboardButton;
+use SergiX44\Nutgram\Support\DeepLink;
 
 function debug($things, $decode=false, $mysql=false, $clear=false) {
 
@@ -168,8 +169,12 @@ function showFriends($userId) {
         );
     }
     mysqli_close($dbCon);
-
-    $keyboard = InlineKeyboardMarkup::make()->addRow(InlineKeyboardButton::make(msg('invite_friend', lang($userId)), null, null, null, 'invite'));
+    $deeplink = new DeepLink();
+    $deep_link = $deeplink->start(BOT_USERNAME, $userId);
+    $share_link = "https://t.me/share/url?url=".$deep_link;
+    //error_log($share_link);
+    $keyboard = InlineKeyboardMarkup::make()
+    ->addRow(InlineKeyboardButton::make(msg('invite_friend', lang($userId)), $share_link));
 
     foreach ($friends_info as $row) {
         $msg = $row['first_name']."  ( ".$row['username']." )";
