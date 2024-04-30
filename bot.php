@@ -240,12 +240,16 @@ $bot->onMessage(function (Nutgram $bot) {
     }
     elseif (str_contains($text, msg('frends', $lang))) {
         $friends = findFriends($bot->userId());
-        $deeplink = new DeepLink();
-        $deep_link = $deeplink->start(BOT_USERNAME, $bot->userId());
-        $share_link = "https://t.me/share/url?url=".$deep_link;
-        $inlineKeyboard = InlineKeyboardMarkup::make()
-        ->addRow(InlineKeyboardButton::make(msg('invite_friend', lang($bot->userId())), $share_link))->addRow(InlineKeyboardButton::make(msg('cancel', lang($bot->userId())), null,null, 'callback_cancel'));
         if ($friends==0) {
+            $referral = getReferralCode($bot->userId());
+            if (!$referral) {
+                $referral = $bot->userId();
+            }
+            $deeplink = new DeepLink();
+            $deep_link = $deeplink->start(BOT_USERNAME, $referral);
+            $share_link = "https://t.me/share/url?url=".$deep_link;
+            $inlineKeyboard = InlineKeyboardMarkup::make()
+            ->addRow(InlineKeyboardButton::make(msg('invite_friend', lang($bot->userId())), $share_link))->addRow(InlineKeyboardButton::make(msg('cancel', lang($bot->userId())), null,null, 'callback_cancel'));
             $bot->sendMessage(msg('no_friends', $lang), reply_markup: $inlineKeyboard);
         } else {
             $friend_keyboard = showFriends($bot->userId());
@@ -257,6 +261,10 @@ $bot->onMessage(function (Nutgram $bot) {
         $inlineKeyboard = InlineKeyboardMarkup::make()
         ->addRow(InlineKeyboardButton::make(msg('change_language', lang($bot->userId())), null, null, 'callback_change_lang'));
         $bot->sendMessage(constructStatus($bot->userId()), reply_markup: $inlineKeyboard);
+    }
+    elseif (str_contains($text, '/genRef')) {
+        $referral = uniqid();
+        $bot->sendMessage($referral);
     }
     elseif (str_contains($text, msg('info', $lang))) {
         $rand = rand(1, 3);

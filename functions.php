@@ -46,9 +46,10 @@ function createUser($user){
         $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
         $username = "";
         $timeNow = TIME_NOW;
+        $referral = uniqid();
         if ($user['username']!='') { $username = $user['username']; } 
         else { $username = $user['first_name']." ".$user['last_name']; }
-        mysqli_query($dbCon, "INSERT INTO user (userId, firstName, lastName, username, language, lastVisit, registeredAt) VALUES ('" . $user['id'] . "', '" . $user['first_name'] . "', '" . $user['last_name'] . "', '" . $username . "', '" . $user['language_code'] . "', '" . $timeNow . "', '" . $timeNow . "')");
+        mysqli_query($dbCon, "INSERT INTO user (userId, firstName, lastName, username, language, lastVisit, registeredAt, referral) VALUES ('" . $user['id'] . "', '" . $user['first_name'] . "', '" . $user['last_name'] . "', '" . $username . "', '" . $user['language_code'] . "', '" . $timeNow . "', '" . $timeNow . "', '" . $referral . "')");
         mysqli_close($dbCon);
         return true;
     } else {
@@ -131,8 +132,45 @@ function findFriends($userId) {
     mysqli_close($dbCon);
 }
 
+function getUserFromRef($referral) {
+    $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+    $userId = mysqli_query($dbCon, "SELECT userId FROM user WHERE referral='$referral'");
+    $userId = mysqli_fetch_assoc($userId);
+    mysqli_close($dbCon);
+    return $userId['userId'];
+}
 
-function makeFriend($user_from, $user_to, $timeNow) {
+function createRefCode($userId) {
+    $referral = uniqid();
+    try {
+        $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+        $query = mysqli_query($dbCon, "UPDATE user SET referral='$referral' WHERE userId='$userId'");
+        mysqli_close($dbCon);
+        return $referral;
+    } catch (Exception $e) {
+        error_log("Error in generating ref code");
+        return false;
+    }
+}
+
+function getReferralCode($userId) {
+    $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+    $result = mysqli_query($dbCon, "SELECT referral FROM user WHERE userId='$userId'");
+    $ref = mysqli_fetch_assoc($result);
+    mysqli_close($dbCon);
+    $referral = $ref['referral'];
+    if ($referral === NULL || $referral === '') {
+        $referral = createRefCode($userId);
+        if (!$referral) {
+            error_log('Failed to create referral.');
+            return false;
+        }
+    }
+    return $referral;
+}
+
+function makeFriend($referral, $user_to, $timeNow) {
+    $user_from = getUserFromRef($referral);
     $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
     $check_query = mysqli_query($dbCon, "SELECT * FROM friend_request WHERE (user_from='$user_to' AND user_to='$user_from' AND status='friends') OR (user_to='$user_to' AND user_from='$user_from' AND status='friends')");
     $existing_row = mysqli_fetch_assoc($check_query);
@@ -169,8 +207,12 @@ function showFriends($userId) {
         );
     }
     mysqli_close($dbCon);
+    $referral = getReferralCode($userId);
+    if (!$referral) {
+        $referral = $userId;
+    }
     $deeplink = new DeepLink();
-    $deep_link = $deeplink->start(BOT_USERNAME, $userId);
+    $deep_link = $deeplink->start(BOT_USERNAME, $referral);
     $share_link = "https://t.me/share/url?url=".$deep_link;
     $keyboard = InlineKeyboardMarkup::make()
     ->addRow(InlineKeyboardButton::make(msg('invite_friend', lang($userId)), $share_link));
