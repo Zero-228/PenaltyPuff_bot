@@ -227,7 +227,7 @@ $bot->onMessage(function (Nutgram $bot) {
                 $username = getUsername($puff['userFrom']);
                 $msg = $username.msg('prescribed_puff', $lang)."\n\n( ".$puff['prescribed_at'].' )';
                 $bot->sendMessage($msg, chat_id: $friendId, reply_markup: $inlineKeyboard);
-                sleep(0.8);
+                sleep(1);
             }
         } else {
             $keyboard = InlineKeyboardMarkup::make()->addRow(InlineKeyboardButton::make(msg('cancel', lang($bot->userId())), null,null, 'callback_cancel'));
