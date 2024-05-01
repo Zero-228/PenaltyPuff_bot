@@ -59,7 +59,15 @@ function createUser($user){
 }
 
 function createLog($timestamp, $entity, $entityId, $context, $message) {
+    $timeNow = TIME_NOW;
     $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+    if($entity=='user'){
+        try {
+            $query = mysqli_query($dbCon, "UPDATE user SET lastVisit='$timeNow' WHERE userId='$entityId'");
+        } catch (Exception $e) {
+            error_log("Error updating user's last visit time. User: ".$entityId." | Error: ".mysqli_error($dbCon));
+        }
+    }
     $createLog = mysqli_query($dbCon, "INSERT INTO log (createdAt, entity, entityId, context, message) VALUES ('$timestamp', '$entity','$entityId','$context','$message')");
     if (!$createLog) {
         error_log("error with create log in DB");
@@ -352,6 +360,31 @@ function getUsername($userId){
     }
     mysqli_close($dbCon);
 }
+
+function checkIfSupport($userId, $message_id){
+    $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+    $result = mysqli_query($dbCon, "SELECT * FROM log WHERE entityId = '$userId' AND context = 'callback' AND message LIKE '%support%' AND createdAt >= NOW() - INTERVAL 1 HOUR");
+    if (mysqli_num_rows($result) > 0) {
+        while ($row = mysqli_fetch_assoc($result)) {
+            $message_parts = explode(' ', $row['message']);
+            foreach ($message_parts as $part) {
+                if (is_numeric($part) && $part == ($message_id - 2)) {
+                    return true;
+                }
+            }
+        }
+    }
+    mysqli_close($dbCon);
+    return false;
+}
+
+function createSupport($userId, $message){
+    $timeNow = TIME_NOW;
+    $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+    $query = mysqli_query($dbCon, "INSERT INTO support (userId, message, created_at) VALUES ('$userId', '$message', '$timeNow')");
+    mysqli_close($dbCon);
+}
+
 
 
 ?>

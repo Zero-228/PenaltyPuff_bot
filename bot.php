@@ -24,8 +24,7 @@ $bot->onCommand('start {referral}', function(Nutgram $bot, $referral = null) {
             createLog(TIME_NOW, 'user', $bot->userId(), 'registering', '/start');
             $lang = lang($bot->userId());
             $keyboard = constructMenuButtons($lang);
-            if ($referral
-            ) {
+            if ($referral) {
                 $newFriend = makeFriend($referral, $bot->userId(), TIME_NOW);
                 if (str_contains($newFriend, "new friends")) {
                     $msg = "🙋‍♂️ ".getUsername($bot->userId()).msg("accepted_friendship", lang($referral));
@@ -49,8 +48,11 @@ $bot->onCommand('start {referral}', function(Nutgram $bot, $referral = null) {
             if ($referral) {
                 $newFriend = makeFriend($referral, $bot->userId(), TIME_NOW);
                 if (str_contains($newFriend, "new friends")) {
-                    $bot->sendMessage(msg('new_friends', lang($bot->userId())));
+                    $msg = "🙋‍♂️ ".getUsername($bot->userId()).msg("accepted_friendship", lang($referral));
+                    $bot->sendMessage(msg('welcome', $lang)."\n\n".msg('new_friends', $lang), reply_markup: $keyboard);
                     createLog(TIME_NOW, 'user', $bot->userId(), 'friendship', $newFriend);
+                    sleep(2);
+                    $bot->sendMessage($msg, chat_id: $referral);
                 } elseif ($newFriend=="already friends") {
                     $bot->sendMessage(msg('already_friends', lang($bot->userId())));
                 } elseif (str_contains($newFriend, "updated")) {
@@ -188,7 +190,8 @@ $bot->onCallbackQueryData('callback_puff_approve {puffId} {friendId}', function 
 $bot->onCallbackQueryData('callback_support', function (Nutgram $bot) {
     createLog(TIME_NOW, 'user', $bot->userId(), 'callback', 'support '.$bot->messageId());
     $bot->deleteMessage($bot->userId(),$bot->messageId());
-    $bot->sendMessage(msg('WIP', lang($bot->userId())));
+    $keyboard = InlineKeyboardMarkup::make()->addRow(InlineKeyboardButton::make(msg('cancel', $lang), null,null, 'callback_cancel'));
+    $bot->sendMessage(msg('support_msg', lang($bot->userId())), reply_markup: $keyboard);
     $bot->answerCallbackQuery();
 });
 
@@ -276,7 +279,14 @@ $bot->onMessage(function (Nutgram $bot) {
         $bot->sendMessage($msg, reply_markup: $keyboard);
     } 
     else {
-        $bot->sendMessage("You send: ".$text);
+        $checkIfSupport = checkIfSupport($bot->userId(), $bot->messageId());
+        if ($checkIfSupport) {
+            createSupport($bot->userId(), $text);
+            $bot->sendMessage(msg('support_delivered', lang($bot->userId())));
+        } else {
+            $bot->sendMessage(msg('unknown', lang($bot->userId())));
+            //$bot->sendMessage("You send: ".$text);
+        }
     }
 });
 
