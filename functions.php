@@ -256,7 +256,8 @@ function warnFriend($userId, $friendId, $reason) {
 }
 
 function prescribePuff($userId, $friendId) {
-    $timeNow = TIME_NOW;
+    $now = new DateTime('now', new DateTimeZone('Europe/Madrid'));
+    $timeNow = $now->format('Y-m-d H:i:s');
     if ($userId!=$friendId) {
         $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
     
@@ -313,7 +314,8 @@ function prescribePuffFriend($userId) {
 }
 
 function updatePuff($puffId, $status) {
-    $timeNow = TIME_NOW;
+    $now = new DateTime('now', new DateTimeZone('Europe/Madrid'));
+    $timeNow = $now->format('Y-m-d H:i:s');
     $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
     if ($status=='decline') {
         $query = mysqli_query($dbCon, "UPDATE puff SET status='$status', modified_at='$timeNow' WHERE puffId='$puffId'");

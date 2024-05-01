@@ -190,7 +190,7 @@ $bot->onCallbackQueryData('callback_puff_approve {puffId} {friendId}', function 
 $bot->onCallbackQueryData('callback_support', function (Nutgram $bot) {
     createLog(TIME_NOW, 'user', $bot->userId(), 'callback', 'support '.$bot->messageId());
     $bot->deleteMessage($bot->userId(),$bot->messageId());
-    $keyboard = InlineKeyboardMarkup::make()->addRow(InlineKeyboardButton::make(msg('cancel', $lang), null,null, 'callback_cancel'));
+    $keyboard = InlineKeyboardMarkup::make()->addRow(InlineKeyboardButton::make(msg('cancel', lang($bot->userId())), null,null, 'callback_cancel'));
     $bot->sendMessage(msg('support_msg', lang($bot->userId())), reply_markup: $keyboard);
     $bot->answerCallbackQuery();
 });
