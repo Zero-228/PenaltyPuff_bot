@@ -221,7 +221,7 @@ function showFriends($userId) {
 function getFriendKeyboard(array $friends, int $page, $userId): InlineKeyboardMarkup{
     $referral = getReferralCode($userId);
     if (!$referral) {
-        $referral = $userId;
+        $referral = createRefCode($userId);
     }
     $lang = lang($userId);
     $deeplink = new DeepLink();
@@ -299,6 +299,16 @@ function prescribePuff($userId, $friendId) {
     }
 }
 
+
+
+
+
+
+
+
+
+
+
 function prescribePuffFriend($userId) {
     $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
     $friends_query = mysqli_query($dbCon, "SELECT * FROM friend_request WHERE (user_from='$userId' OR user_to='$userId') AND status='friends'");
@@ -323,7 +333,46 @@ function prescribePuffFriend($userId) {
     $keyboard->addRow(InlineKeyboardButton::make(msg('cancel', lang($userId)), null,null, 'callback_cancel'));
 
     return $keyboard;
+
+
+    
 }
+
+function prescribePuffFriend2($userId, $page = 0) {
+    $friends = showFriends($userId);
+    $lang = lang($userId);
+    $keyboard = InlineKeyboardMarkup::make();
+    $start = $page * 5;
+    for ($i = $start; $i < $start + 5 && $i < count($friends); $i++) {
+        $msg = $friends[$i]['first_name']."  ( ".$friends[$i]['username']." )";
+        $keyboard->addRow(InlineKeyboardButton::make($msg, null,null, 'callback_prescribe '.$friends[$i]['id']));
+    }
+    if ($page > 0 || count($friends) > ($start + 5)) {
+        $buttons = [];
+        if ($page > 0) {
+            $buttons[] = InlineKeyboardButton::make(msg('btn_back', $lang), callback_data:"/prescribe_page_ " . ($page - 1) . " /");
+        }
+        if (count($friends) > ($start + 5)) {
+            $buttons[] = InlineKeyboardButton::make(msg('btn_forward', $lang), callback_data:"/prescribe_page_ " . ($page + 1) . " /");
+        }
+        $keyboard->addRow(...$buttons);
+    }
+
+    return $keyboard;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 function updatePuff($puffId, $status) {
     $now = new DateTime('now', new DateTimeZone('Europe/Madrid'));

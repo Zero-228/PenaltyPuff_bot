@@ -267,6 +267,29 @@ $bot->onCallbackQueryData('/friend_page_{matches}/', function (Nutgram $bot, $ma
     $bot->editMessageText(text: $msg,chat_id: $bot->chat()->id, message_id: $bot->message()->message_id, reply_markup: $keyboard);
 });
 
+$bot->onCallbackQueryData('/prescribe_page_{matches}/', function (Nutgram $bot, $matches) use ($cache) {
+    $userId = $bot->userId();
+    $page = isset($matches[1]) ? $matches[1] : 0;
+    $lang = lang($bot->userId());
+    $pageItem = $cache->getItem("p_page.$userId");
+    $pageItem->set($page);
+    $cache->save($pageItem);
+    $friends = showFriends($userId);
+
+    // Если друзей нет, то возвращаем пустую клавиатуру
+    if (!$friends) {
+        $inlineKeyboard = InlineKeyboardMarkup::make()
+        ->addRow(InlineKeyboardButton::make(msg('cancel', $lang)), null,null, 'callback_cancel');
+        $bot->sendMessage(msg('no_friends', $lang), reply_markup: $inlineKeyboard);
+        return;
+    }
+
+    $keyboard = prescribePuffFriend2($userId, $page);
+    $keyboard->addRow(InlineKeyboardButton::make(msg('cancel', $lang), null,null, 'callback_cancel'));
+    $msg = msg('choose_friend', $lang);
+    $bot->editMessageText(text: $msg,chat_id: $bot->chat()->id, message_id: $bot->message()->message_id, reply_markup: $keyboard);
+});
+
 
 
 $bot->onMessage(function (Nutgram $bot) use ($cache){
@@ -289,7 +312,8 @@ $bot->onMessage(function (Nutgram $bot) use ($cache){
         }
     }
     elseif (str_contains($text, msg('prescribe', $lang))) {
-        $prescribePuffKeyboard = prescribePuffFriend($bot->userId());
+        $prescribePuffKeyboard = prescribePuffFriend2($bot->userId());
+        $prescribePuffKeyboard->addRow(InlineKeyboardButton::make(msg('cancel', $lang), null,null, 'callback_cancel'));
         $bot->sendMessage(msg('choose_friend', $lang), reply_markup: $prescribePuffKeyboard);
     }
     elseif (str_contains($text, msg('frends', $lang))) {
@@ -297,7 +321,7 @@ $bot->onMessage(function (Nutgram $bot) use ($cache){
         if ($friends == 0) {
             $referral = getReferralCode($bot->userId());
             if (!$referral) {
-                $referral = $bot->userId();
+                $referral = createRefCode($bot->userId());
             }
             $deeplink = new DeepLink();
             $deep_link = $deeplink->start(BOT_USERNAME, $referral);
