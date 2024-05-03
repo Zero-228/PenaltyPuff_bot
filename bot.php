@@ -294,7 +294,10 @@ $bot->onCallbackQueryData('/prescribe_page_{matches}/', function (Nutgram $bot, 
 
 
 $bot->onMessage(function (Nutgram $bot) use ($cache){
-    createLog(TIME_NOW, 'user', $bot->userId(), 'message', $bot->message()->text);
+    $role = checkRole($bot->userId());
+    if ($role == 'user') {
+        createLog(TIME_NOW, 'user', $bot->userId(), 'message', $bot->message()->text);
+    }
     $text = $bot->message()->text;
     $lang = lang($bot->userId());
     if (str_contains($text, msg('approve', $lang))) {
@@ -343,9 +346,23 @@ $bot->onMessage(function (Nutgram $bot) use ($cache){
         ->addRow(InlineKeyboardButton::make(msg('change_language', lang($bot->userId())), null, null, 'callback_change_lang'));
         $bot->sendMessage(constructStatus($bot->userId()), reply_markup: $inlineKeyboard);
     }
-    elseif (str_contains($text, '/genRef')) {
-        $referral = uniqid();
-        $bot->sendMessage($referral);
+    elseif (str_contains($text, '.msg')) {
+        $bot->deleteMessage($bot->userId(),$bot->messageId());
+        if ($role != 'user') {
+            $parts = explode(' ', $text);
+            array_shift($parts);
+            $msg_lang = array_shift($parts);
+            $message = implode(' ', $parts);
+            $users = selectUsersWithLang($bot->userId(), $msg_lang);
+            foreach ($users as $user) {
+                $bot->sendMessage(text: "❗️✉️  ".$message, chat_id: $user['userId']);
+                sleep(1);
+            }
+            $bot->sendMessage("Message \"".$message."\" sent to all users with language: ".$msg_lang);
+            createLog(TIME_NOW, 'admin', $bot->userId(), 'msg_all', $bot->message()->text);
+        } else {
+            $bot->sendMessage(msg('no_perm', $lang));
+        }
     }
     elseif (str_contains($text, msg('info', $lang))) {
         $rand = rand(1, 3);

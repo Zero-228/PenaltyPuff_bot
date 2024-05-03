@@ -396,6 +396,30 @@ function createSupport($userId, $message){
     $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
     $query = mysqli_query($dbCon, "INSERT INTO support (userId, message, created_at) VALUES ('$userId', '$message', '$timeNow')");
     mysqli_close($dbCon);
+
+
+}
+
+function selectUsersWithLang($userId, $lang){
+    $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+    $query = mysqli_query($dbCon, "SELECT userId FROM user WHERE language='$lang' AND userId != '$userId'");
+    $result = mysqli_fetch_all($query, MYSQLI_ASSOC);
+    mysqli_close($dbCon);
+    return $result;
+}
+
+function checkRole($userId) {
+    $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+    $roleQuery = mysqli_query($dbCon, "SELECT role FROM user WHERE userId='$userId'");
+    $roleNumRow = mysqli_num_rows($roleQuery);
+    if ($roleNumRow == 1) {
+        $role = mysqli_fetch_assoc($roleQuery);
+        $role = $role['role'];
+        return $role;
+    } else {
+        return "no user";
+    }
+    mysqli_close($dbCon);
 }
 
 
