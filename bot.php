@@ -18,13 +18,13 @@ $bot->setWebhook(WEBHOOK_URL);
 $cache = new FilesystemAdapter();
 
 $bot->onCommand('start {referral}', function(Nutgram $bot, $referral = null) {
+    $lang = lang($bot->userId());
     if ($referral) {
         $checkUser = checkUser($bot->userId());
         if ($checkUser == 'no_such_user') {
             $user_info = get_object_vars($bot->user());
             createUser($user_info);
             createLog(TIME_NOW, 'user', $bot->userId(), 'registering', '/start');
-            $lang = lang($bot->userId());
             $keyboard = constructMenuButtons($lang);
             if ($referral) {
                 if (ctype_digit($referral)) {
@@ -36,7 +36,8 @@ $bot->onCommand('start {referral}', function(Nutgram $bot, $referral = null) {
                         $bot->sendMessage(msg('welcome', $lang)."\n\n".msg('new_friends', $lang), reply_markup: $keyboard);
                         createLog(TIME_NOW, 'user', $bot->userId(), 'friendship', $newFriend);
                         sleep(2);
-                        $bot->sendMessage($msg, chat_id: $referral);
+                        $friendId = getUserFromRef($referral);
+                        $bot->sendMessage($msg, chat_id: $friendId);
                     } elseif ($newFriend=="already friends") {
                         $bot->sendMessage(msg('welcome', $lang)."\n\n".msg('already_friends', $lang), reply_markup: $keyboard);
                     } elseif (str_contains($newFriend, "updated")) {
@@ -303,7 +304,7 @@ $bot->onMessage(function (Nutgram $bot) use ($cache){
                 $inlineKeyboard = InlineKeyboardMarkup::make()->addRow(InlineKeyboardButton::make(msg('puff_decline', $lang), null,null, 'callback_puff_decline '.$puff['puffId'].' '.$puff['userFrom']),InlineKeyboardButton::make(msg('puff_approve', $lang), null,null, 'callback_puff_approve '.$puff['puffId'].' '.$puff['userFrom']))->addRow(InlineKeyboardButton::make(msg('cancel', $lang), null,null, 'callback_cancel'));
                 $username = getUsername($puff['userFrom']);
                 $msg = $username.msg('prescribed_puff', $lang)."\n\n( ".$puff['prescribed_at'].' )';
-                $bot->sendMessage($msg, chat_id: $friendId, reply_markup: $inlineKeyboard);
+                $bot->sendMessage($msg, chat_id: $puff['userTo'], reply_markup: $inlineKeyboard);
                 sleep(1);
             }
         } else {
