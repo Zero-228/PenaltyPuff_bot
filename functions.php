@@ -299,45 +299,6 @@ function prescribePuff($userId, $friendId) {
     }
 }
 
-
-
-
-
-
-
-
-
-
-
-function prescribePuffFriend($userId) {
-    $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
-    $friends_query = mysqli_query($dbCon, "SELECT * FROM friend_request WHERE (user_from='$userId' OR user_to='$userId') AND status='friends'");
-    $friends_info = array();
-    while ($friend = mysqli_fetch_assoc($friends_query)) {
-        $friend_id = ($friend['user_from'] == $userId) ? $friend['user_to'] : $friend['user_from'];
-        $user_query = mysqli_query($dbCon, "SELECT firstName, username FROM user WHERE userId='$friend_id'");
-        $user_info = mysqli_fetch_assoc($user_query);
-        $friends_info[] = array(
-            'id' => $friend_id,
-            'first_name' => $user_info['firstName'],
-            'username' => $user_info['username']
-        );
-    }
-    mysqli_close($dbCon);
-
-    $keyboard = InlineKeyboardMarkup::make();
-    foreach ($friends_info as $row) {
-        $msg = $row['first_name']."  ( ".$row['username']." )";
-        $keyboard->addRow(InlineKeyboardButton::make($msg, null,null, 'callback_prescribe '.$row['id']));
-    }
-    $keyboard->addRow(InlineKeyboardButton::make(msg('cancel', lang($userId)), null,null, 'callback_cancel'));
-
-    return $keyboard;
-
-
-    
-}
-
 function prescribePuffFriend2($userId, $page = 0) {
     $friends = showFriends($userId);
     $lang = lang($userId);
@@ -360,19 +321,6 @@ function prescribePuffFriend2($userId, $page = 0) {
 
     return $keyboard;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 function updatePuff($puffId, $status) {
     $now = new DateTime('now', new DateTimeZone('Europe/Madrid'));
@@ -414,14 +362,16 @@ function checkPuff($userId) {
 
 function getUsername($userId){
     $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
-    $username = mysqli_query($dbCon, "SELECT username FROM user WHERE userId='$userId'");
-    if ($username) {
-        $username = mysqli_fetch_assoc($username);
+    $result = mysqli_query($dbCon, "SELECT username FROM user WHERE userId='$userId'");
+    if ($result && mysqli_num_rows($result) > 0) {
+        $username = mysqli_fetch_assoc($result);
+        mysqli_free_result($result);
+        mysqli_close($dbCon);
         return $username['username'];
     } else {
+        mysqli_close($dbCon);
         return msg("friend", $bot->userId());
     }
-    mysqli_close($dbCon);
 }
 
 function checkIfSupport($userId, $message_id){
