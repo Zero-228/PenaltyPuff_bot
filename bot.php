@@ -10,10 +10,12 @@ use SergiX44\Nutgram\RunningMode\Webhook;
 use SergiX44\Nutgram\Support\DeepLink;
 use SergiX44\Nutgram\Telegram\Types\Keyboard\InlineKeyboardMarkup;
 use SergiX44\Nutgram\Telegram\Types\Keyboard\InlineKeyboardButton;
+use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 
 $bot = new Nutgram(BOT_TOKEN);
 $bot->setRunningMode(Webhook::class);
 $bot->setWebhook(WEBHOOK_URL);
+$cache = new FilesystemAdapter();
 
 $bot->onCommand('start {referral}', function(Nutgram $bot, $referral = null) {
     $lang = lang($bot->userId());
@@ -50,6 +52,8 @@ $bot->onCommand('start {referral}', function(Nutgram $bot, $referral = null) {
             }
         } elseif ($checkUser == 'one_user') {
             createLog(TIME_NOW, 'user', $bot->userId(), 'command', '/start');
+            $lang = lang($bot->userId());
+            $keyboard = constructMenuButtons($lang);
             if ($referral) {
                 if (ctype_digit($referral)) {
                     die();
@@ -57,21 +61,21 @@ $bot->onCommand('start {referral}', function(Nutgram $bot, $referral = null) {
                     $newFriend = makeFriend($referral, $bot->userId(), TIME_NOW);
                     if (str_contains($newFriend, "new friends")) {
                         $msg = "🙋‍♂️ ".getUsername($bot->userId()).msg("accepted_friendship", lang($referral));
-                        $bot->sendMessage(msg('welcome', $lang)."\n\n".msg('new_friends', $lang), reply_markup: $keyboard);
+                        $bot->sendMessage(msg('new_friends', $lang), reply_markup: $keyboard);
                         createLog(TIME_NOW, 'user', $bot->userId(), 'friendship', $newFriend);
                         sleep(2);
                         $bot->sendMessage($msg, chat_id: $referral);
                     } elseif ($newFriend=="already friends") {
-                        $bot->sendMessage(msg('welcome', $lang)."\n\n".msg('already_friends', $lang), reply_markup: $keyboard);
+                        $bot->sendMessage(msg('already_friends', $lang), reply_markup: $keyboard);
                     } elseif (str_contains($newFriend, "updated")) {
                         createLog(TIME_NOW, 'user', $bot->userId(), 'friendship', $newFriend);
-                        $bot->sendMessage(msg('welcome', $lang)."\n\n".msg('updated_friends', $lang), reply_markup: $keyboard);
+                        $bot->sendMessage(msg('updated_friends', $lang), reply_markup: $keyboard);
                     } else {
                         $bot->sendMessage('Some strange shit');
                     }
                 }
             } else {
-                $bot->sendMessage(msg('welcome_back', lang($bot->userId())), reply_markup: constructMenuButtons(lang($bot->userId())));
+                $bot->sendMessage(msg('welcome_back', $lang), reply_markup: constructMenuButtons($lang));
             }
         } else {
             $bot->sendMessage('WTF are you?');
@@ -227,7 +231,69 @@ $bot->onCallbackQueryData('callback_cancel', function (Nutgram $bot) {
     $bot->answerCallbackQuery();
 });
 
-$bot->onMessage(function (Nutgram $bot) {
+$bot->onCallbackQueryData('/friend_page_{matches}/', function (Nutgram $bot, $matches) use ($cache) {
+    $userId = $bot->userId();
+    $page = isset($matches[1]) ? $matches[1] : 0;
+    $lang = lang($bot->userId());
+
+    // Сохраняем значение page в кэше
+    $pageItem = $cache->getItem("page.$userId");
+    $pageItem->set($page);
+    $cache->save($pageItem);
+
+    // Получаем список друзей прямо здесь, а не из кэша
+    $friends = showFriends($userId);
+
+    // Если друзей нет, то возвращаем пустую клавиатуру
+    if (!$friends) {
+        $referral = getReferralCode($bot->userId());
+        if (!$referral) {
+            $referral = $bot->userId();
+        }
+        $deeplink = new DeepLink();
+        $deep_link = $deeplink->start(BOT_USERNAME, $referral);
+        $share_link = "https://t.me/share/url?url=".$deep_link;
+        $inlineKeyboard = InlineKeyboardMarkup::make()
+        ->addRow(InlineKeyboardButton::make(msg('invite_friend', $lang), $share_link))->addRow(InlineKeyboardButton::make(msg('cancel', $lang)), null,null, 'callback_cancel');
+        $bot->sendMessage(msg('no_friends', $lang), reply_markup: $inlineKeyboard);
+        return;
+    }
+
+    $friendsQuant = findFriends($bot->userId());
+
+    // Обновляем сообщение с новой страницей друзей
+    $keyboard = getFriendKeyboard($friends, $page, $userId);
+    $keyboard->addRow(InlineKeyboardButton::make(msg('cancel', $lang), null,null, 'callback_cancel'));
+    $msg = msg('friends_quant', $lang).$friendsQuant.msg('invite_using_btn_below', $lang);
+    $bot->editMessageText(text: $msg,chat_id: $bot->chat()->id, message_id: $bot->message()->message_id, reply_markup: $keyboard);
+});
+
+$bot->onCallbackQueryData('/prescribe_page_{matches}/', function (Nutgram $bot, $matches) use ($cache) {
+    $userId = $bot->userId();
+    $page = isset($matches[1]) ? $matches[1] : 0;
+    $lang = lang($bot->userId());
+    $pageItem = $cache->getItem("p_page.$userId");
+    $pageItem->set($page);
+    $cache->save($pageItem);
+    $friends = showFriends($userId);
+
+    // Если друзей нет, то возвращаем пустую клавиатуру
+    if (!$friends) {
+        $inlineKeyboard = InlineKeyboardMarkup::make()
+        ->addRow(InlineKeyboardButton::make(msg('cancel', $lang)), null,null, 'callback_cancel');
+        $bot->sendMessage(msg('no_friends', $lang), reply_markup: $inlineKeyboard);
+        return;
+    }
+
+    $keyboard = prescribePuffFriend2($userId, $page);
+    $keyboard->addRow(InlineKeyboardButton::make(msg('cancel', $lang), null,null, 'callback_cancel'));
+    $msg = msg('choose_friend', $lang);
+    $bot->editMessageText(text: $msg,chat_id: $bot->chat()->id, message_id: $bot->message()->message_id, reply_markup: $keyboard);
+});
+
+
+
+$bot->onMessage(function (Nutgram $bot) use ($cache){
     createLog(TIME_NOW, 'user', $bot->userId(), 'message', $bot->message()->text);
     $text = $bot->message()->text;
     $lang = lang($bot->userId());
@@ -247,26 +313,29 @@ $bot->onMessage(function (Nutgram $bot) {
         }
     }
     elseif (str_contains($text, msg('prescribe', $lang))) {
-        $prescribePuffKeyboard = prescribePuffFriend($bot->userId());
+        $prescribePuffKeyboard = prescribePuffFriend2($bot->userId());
+        $prescribePuffKeyboard->addRow(InlineKeyboardButton::make(msg('cancel', $lang), null,null, 'callback_cancel'));
         $bot->sendMessage(msg('choose_friend', $lang), reply_markup: $prescribePuffKeyboard);
     }
     elseif (str_contains($text, msg('frends', $lang))) {
-        $friends = findFriends($bot->userId());
-        if ($friends==0) {
+        $friends = findFriends($bot->userId()); 
+        if ($friends == 0) {
             $referral = getReferralCode($bot->userId());
             if (!$referral) {
-                $referral = $bot->userId();
+                $referral = createRefCode($bot->userId());
             }
             $deeplink = new DeepLink();
             $deep_link = $deeplink->start(BOT_USERNAME, $referral);
             $share_link = "https://t.me/share/url?url=".$deep_link;
             $inlineKeyboard = InlineKeyboardMarkup::make()
-            ->addRow(InlineKeyboardButton::make(msg('invite_friend', lang($bot->userId())), $share_link))->addRow(InlineKeyboardButton::make(msg('cancel', lang($bot->userId())), null,null, 'callback_cancel'));
+            ->addRow(InlineKeyboardButton::make(msg('invite_friend', $lang), $share_link))->addRow(InlineKeyboardButton::make(msg('cancel', lang($bot->userId())), null,null, 'callback_cancel'));
             $bot->sendMessage(msg('no_friends', $lang), reply_markup: $inlineKeyboard);
         } else {
-            $friend_keyboard = showFriends($bot->userId());
-            $msg = msg('friends_quant', lang($bot->userId())).$friends.msg('invite_using_btn_below', lang($bot->userId()));
-            $bot->sendMessage($msg, reply_markup: $friend_keyboard);
+            $friends_info = showFriends($bot->userId());
+            $keyboard = getFriendKeyboard($friends_info, 0, $bot->userId());
+            $keyboard->addRow(InlineKeyboardButton::make(msg('cancel', $lang), null,null, 'callback_cancel'));
+            $msg = msg('friends_quant', $lang).$friends.msg('invite_using_btn_below', $lang);
+            $bot->sendMessage($msg, reply_markup: $keyboard);
         }
     }
     elseif (str_contains($text, msg('status', $lang))) {
