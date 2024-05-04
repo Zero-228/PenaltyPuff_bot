@@ -5,6 +5,7 @@ use SergiX44\Nutgram\Telegram\Types\Keyboard\InlineKeyboardButton;
 use SergiX44\Nutgram\Telegram\Types\Keyboard\ReplyKeyboardMarkup;
 use SergiX44\Nutgram\Telegram\Types\Keyboard\KeyboardButton;
 use SergiX44\Nutgram\Support\DeepLink;
+use SergiX44\Nutgram\Nutgram;
 
 function debug($things, $decode=false, $mysql=false, $clear=false) {
 
@@ -421,6 +422,30 @@ function checkRole($userId) {
     }
     mysqli_close($dbCon);
 }
+
+function sendNotifications(Nutgram $bot) {
+    $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+    $inactivity_result = mysqli_query($dbCon, "SELECT * FROM user WHERE lastVisit < NOW() - INTERVAL 1.5 DAY AND deleted = 'no' AND banned = 'no'");
+    $unapprooved_result = mysqli_query($dbCon, "SELECT puff.userTo, user.language FROM puff JOIN user ON puff.userTo = user.userId WHERE prescribed_at < NOW() - INTERVAL 6 HOUR AND status='pending'");
+    processResults($dbCon, $bot, $inactivity_result, 'inactivity');
+    processResults($dbCon, $bot, $unapprooved_result, 'unapprooved');
+    mysqli_close($dbCon);
+}
+
+function processResults($dbCon, Nutgram $bot, $result, $messageType) {
+    while ($user = mysqli_fetch_assoc($result)) {
+        $userId = $messageType == 'unapprooved' ? $user['userTo'] : $user['userId'];
+        $logQuery = "SELECT * FROM log WHERE entityId = {$userId} AND context = 'notification' AND message='{$messageType}'";
+        $logResult = mysqli_query($dbCon, $logQuery);
+        if (mysqli_num_rows($logResult) == 0) {
+            $language = isset($user['language']) ? $user['language'] : 'en';
+            $bot->sendMessage(msg($messageType, $language), chat_id: $userId);
+            createLog(TIME_NOW, 'bot', $userId, 'notification', $messageType);
+            sleep(1);
+        }
+    }
+}
+
 
 
 

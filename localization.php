@@ -92,6 +92,8 @@ $languages = array(
 		'btn_back' => "↩️ Back",
 		'btn_forward' => "Forward ↪️",
 		'no_perm' => "❗️You don't have permissions to do that ❌",
+		'inactivity' => "🔔 Hello, it seems you haven't \nvisited the bot for a while. \nPrescribe penalty puff to friends, \nso they don't relax!)",
+		'unapprooved' => "🔔You have an unapproved \npenalty puff! 🌳\n\nHow is this possible?! ☹️",
 	),
 	'ru' => array(
 		'welcome' => "Привет! Я - Penalty Puff, твой помощник \nв веселом и справедливом выписывании \nштрафных. Доверь мне эту нелегкую \nзадачу, и вместе мы сделаем процесс \nболее интересным и дружелюбным! \nДавай начнем? 💨✍️",
@@ -157,6 +159,8 @@ $languages = array(
 		'btn_back' => "↩️ Назад",
 		'btn_forward' => "Вперёд ↪️",
 		'no_perm' => "❗️У тебя недостаточно прав чтобы это сделать ❌",
+		'inactivity' => "🔔Привет, кажется ты давно не заходил в \nбота, выпшиш штрафную друзьям, чтоб \nони не расслаблялись!)",
+		'unapprooved' => "🔔У тебя есть неподтверждённая штрафная! 🌳\n\nКак так можно?! ☹️",
 	),
 	'uk' => array(
 		'welcome' => "Привіт! Я - Penalty Puff, твій помічник \nу веселому та справедливому \nвиписуванні штрафних. Довірся мені з \nцією нелегкою задачею, і разом ми \nзробимо процес більш цікавим та дружелюбним! Давай почнемо? 💨✍️",
@@ -222,6 +226,9 @@ $languages = array(
 		'btn_back' => "↩️ Назад",
 		'btn_forward' => "Вперед ↪️",
 		'no_perm' => "❗️У тебе недостатньо прав щоб це зробии ❌",
+		'inactivity' => "🔔Привіт, здається ти давно не \nзаходив в бота, випиши штрафну \nсвоїм,🔔 щоб вони не розслаблялись!)",
+			'unapprooved' => "🔔У тебе є непідтверджена штрафна! 🌳\n\nЯк так можна?! ☹️",
+
 	),
 );
 

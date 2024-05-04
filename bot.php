@@ -228,6 +228,7 @@ $bot->onCallbackQueryData('callback_cancel', function (Nutgram $bot) {
     createLog(TIME_NOW, 'user', $bot->userId(), 'callback', 'cancel');
     $bot->deleteMessage($bot->userId(),$bot->messageId());
     $bot->sendMessage(msg('canceled', lang($bot->userId())), reply_markup: constructMenuButtons(lang($bot->userId())));
+    sendNotifications($bot);
     $bot->answerCallbackQuery();
 });
 
@@ -319,6 +320,7 @@ $bot->onMessage(function (Nutgram $bot) use ($cache){
         $prescribePuffKeyboard = prescribePuffFriend2($bot->userId());
         $prescribePuffKeyboard->addRow(InlineKeyboardButton::make(msg('cancel', $lang), null,null, 'callback_cancel'));
         $bot->sendMessage(msg('choose_friend', $lang), reply_markup: $prescribePuffKeyboard);
+        sendNotifications($bot);
     }
     elseif (str_contains($text, msg('frends', $lang))) {
         $friends = findFriends($bot->userId()); 
