@@ -1,7 +1,10 @@
 <?php 
 
-require '../config.php';
+require '../config.php'
+require '../functions.php';
 require '../bot.php';
+
+createLog(TIME_NOW, 'bot', ADMIN_ID, 'notification', 'check');
 
 function sendNotifications(Nutgram $bot) {
     $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);

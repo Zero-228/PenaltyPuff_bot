@@ -346,9 +346,9 @@ $bot->onMessage(function (Nutgram $bot) use ($cache){
         ->addRow(InlineKeyboardButton::make(msg('change_language', lang($bot->userId())), null, null, 'callback_change_lang'));
         $bot->sendMessage(constructStatus($bot->userId()), reply_markup: $inlineKeyboard);
     }
-    elseif (str_contains($text, '.msg')) {
-        $bot->deleteMessage($bot->userId(),$bot->messageId());
-        if ($role != 'user') {
+    elseif ($role != 'user') {
+        if (str_contains($text, '.msg')) {
+            $bot->deleteMessage($bot->userId(),$bot->messageId());
             $parts = explode(' ', $text);
             array_shift($parts);
             $msg_lang = array_shift($parts);
@@ -360,10 +360,12 @@ $bot->onMessage(function (Nutgram $bot) use ($cache){
             }
             $bot->sendMessage("Message \"".$message."\" sent to all users with language: ".$msg_lang);
             createLog(TIME_NOW, 'admin', $bot->userId(), 'msg_all', $bot->message()->text);
-        } else {
-            $bot->sendMessage(msg('no_perm', $lang));
+        } 
+        if (str_contains($text, '.stat')) {
+            $bot->deleteMessage($bot->userId(),$bot->messageId());
+            $bot->sendMessage(showBotStat());
         }
-    }
+    } //$bot->sendMessage(msg('no_perm', $lang));
     elseif (str_contains($text, msg('info', $lang))) {
         $rand = rand(1, 3);
         $msg = msg('information', lang($bot->userId())).msg('fact'.$rand, lang($bot->userId()));
