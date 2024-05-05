@@ -31,19 +31,22 @@ $bot->onCommand('start {referral}', function(Nutgram $bot, $referral = null) {
                 if (ctype_digit($referral)) {
                     die();
                 } else {
+                    $friendId = getUserFromRef($referral);
                     $newFriend = makeFriend($referral, $bot->userId(), TIME_NOW);
                     if (str_contains($newFriend, "new friends")) {
                         $msg = "🙋‍♂️ ".getUsername($bot->userId()).msg("accepted_friendship", lang($referral));
                         $bot->sendMessage(msg('welcome', $lang)."\n\n".msg('new_friends', $lang), reply_markup: $keyboard);
                         createLog(TIME_NOW, 'user', $bot->userId(), 'friendship', $newFriend);
                         sleep(2);
-                        $friendId = getUserFromRef($referral);
                         $bot->sendMessage($msg, chat_id: $friendId);
                     } elseif ($newFriend=="already friends") {
                         $bot->sendMessage(msg('welcome', $lang)."\n\n".msg('already_friends', $lang), reply_markup: $keyboard);
                     } elseif (str_contains($newFriend, "updated")) {
                         createLog(TIME_NOW, 'user', $bot->userId(), 'friendship', $newFriend);
                         $bot->sendMessage(msg('welcome', $lang)."\n\n".msg('updated_friends', $lang), reply_markup: $keyboard);
+                        sleep(2);
+                        $msg = "🙋‍♂️ ".getUsername($bot->userId()).msg("accepted_friendship", lang($referral));
+                        $bot->sendMessage($msg, chat_id: $friendId);
                     } else {
                         $bot->sendMessage('Some strange shit');
                     }
@@ -71,6 +74,9 @@ $bot->onCommand('start {referral}', function(Nutgram $bot, $referral = null) {
                     } elseif (str_contains($newFriend, "updated")) {
                         createLog(TIME_NOW, 'user', $bot->userId(), 'friendship', $newFriend);
                         $bot->sendMessage(msg('updated_friends', $lang), reply_markup: $keyboard);
+                        sleep(2);
+                        $msg = "🙋‍♂️ ".getUsername($bot->userId()).msg("accepted_friendship", lang($referral));
+                        $bot->sendMessage($msg, chat_id: $friendId);
                     } else {
                         $bot->sendMessage('Some strange shit');
                     }
@@ -362,7 +368,7 @@ $bot->onMessage(function (Nutgram $bot) use ($cache){
         $bot->sendMessage(constructStatus($bot->userId()), reply_markup: $inlineKeyboard);
     }
     elseif (str_contains($text, msg('info', $lang))) {
-        $rand = rand(1, 3);
+        $rand = rand(1, 8);
         $msg = msg('information', lang($bot->userId())).msg('fact'.$rand, lang($bot->userId()));
         $keyboard = InlineKeyboardMarkup::make()
         ->addRow(InlineKeyboardButton::make(msg('support', lang($bot->userId())), null,null, 'callback_support'))
