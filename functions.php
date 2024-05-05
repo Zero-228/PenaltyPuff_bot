@@ -420,27 +420,31 @@ function checkRole($userId) {
         return "no user";
     }
     mysqli_close($dbCon);
-}
-
-function showBotStat() {
+}function showBotStat() {
     $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
-    $users = mysqli_query($dbCon, "SELECT userId FROM user");
-    $num_users = mysqli_num_rows($users);
-    $new_users = mysqli_query($dbCon, "SELECT userId FROM user WHERE registeredAt >= NOW() - INTERVAL 12 HOUR ");
-    $num_new_users = mysqli_num_rows($new_users);
-    $msgs = mysqli_query($dbCon, "SELECT logId FROM log WHERE createdAt >= NOW() - INTERVAL 1 HOUR");
-    $num_msgs = mysqli_num_rows($msgs);
-    $puffs = mysqli_query($dbCon, "SELECT puffId FROM puff WHERE prescribed_at >= NOW() - INTERVAL 1 HOUR");
-    $num_puffs = mysqli_num_rows($puffs);
-    $appr_puffs = mysqli_query($dbCon, "SELECT puffId FROM puff WHERE status='approve' AND modified_at >= NOW() - INTERVAL 1 HOUR");
-    $num_appr_puffs = mysqli_num_rows($appr_puffs);
-    $den_puffs = mysqli_query($dbCon, "SELECT puffId FROM puff WHERE status='denied' AND modified_at >= NOW() - INTERVAL 1 HOUR");
-    $num_den_puffs = mysqli_num_rows($den_puffs);
+
+    $query = "
+        SELECT 
+            (SELECT COUNT(userId) FROM user) as num_users,
+            (SELECT COUNT(userId) FROM user WHERE registeredAt >= NOW() - INTERVAL 12 HOUR) as num_new_users,
+            (SELECT COUNT(logId) FROM log WHERE createdAt >= NOW() - INTERVAL 1 HOUR) as num_msgs,
+            (SELECT COUNT(puffId) FROM puff WHERE prescribed_at >= NOW() - INTERVAL 1 HOUR) as num_puffs,
+            (SELECT COUNT(puffId) FROM puff WHERE status='approve' AND prescribed_at >= NOW() - INTERVAL 1 HOUR) as num_new_appr_puffs,
+            (SELECT COUNT(puffId) FROM puff WHERE status='denied' AND prescribed_at >= NOW() - INTERVAL 1 HOUR) as num_new_den_puffs,
+            (SELECT COUNT(puffId) FROM puff WHERE status='approve' AND modified_at >= NOW() - INTERVAL 1 HOUR) as num_appr_puffs,
+            (SELECT COUNT(puffId) FROM puff WHERE status='denied' AND modified_at >= NOW() - INTERVAL 1 HOUR) as num_den_puffs,
+            (SELECT puffId FROM puff ORDER BY puffId DESC LIMIT 1) as last_puffId
+    ";
+
+    $result = mysqli_query($dbCon, $query);
+    $data = mysqli_fetch_assoc($result);
+
     mysqli_close($dbCon);
 
-    $msg = "   🤖  Bot statistisc:\n==============================\n\n  🧑‍💻 Users:   ".$num_users."   (🆕 ".$num_users." )\n\n  ✉️ Msgs last hour:   ".$num_msgs."\n\n  🌳 Puffs last hour:   ".$num_puffs."   (👍 ".$num_appr_puffs."/ ".$num_den_puffs." 👎)\n\n==============================";
+    $msg = "⠀             🤖  Bot statistisc:\n==============================\n\n  🧑‍💻 Users:   ".$data['num_users']."   (🆕 ".$data['num_new_users']." )\n\n  ✉️ Msgs last hour:   ".$data['num_msgs']."\n\n  🌳 Total puffs:   ".$data['last_puffId']."\n\n  💨 Puffs last hour:   ".$data['num_puffs']."   (👍 ".$data['num_new_appr_puffs']."/ ".$data['num_new_den_puffs']." 👎)\n\n  ✅Approved puffs last hour:   ".$data['num_appr_puffs']."\n\n  🚫Declided puffs last hour:   ".$data['num_den_puffs']." \n\n==============================";
 
     return $msg;
 }
+
 
 ?>

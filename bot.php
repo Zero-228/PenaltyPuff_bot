@@ -19,12 +19,13 @@ $cache = new FilesystemAdapter();
 
 $bot->onCommand('start {referral}', function(Nutgram $bot, $referral = null) {
     $lang = lang($bot->userId());
+    $role = checkRole($bot->userId());
     if ($referral) {
         $checkUser = checkUser($bot->userId());
         if ($checkUser == 'no_such_user') {
             $user_info = get_object_vars($bot->user());
             createUser($user_info);
-            createLog(TIME_NOW, 'user', $bot->userId(), 'registering', '/start');
+            createLog(TIME_NOW, $role, $bot->userId(), 'registering', '/start');
             $keyboard = constructMenuButtons($lang);
             if ($referral) {
                 if (ctype_digit($referral)) {
@@ -51,7 +52,7 @@ $bot->onCommand('start {referral}', function(Nutgram $bot, $referral = null) {
                 $bot->sendMessage(msg('welcome', $lang), reply_markup: $keyboard);
             }
         } elseif ($checkUser == 'one_user') {
-            createLog(TIME_NOW, 'user', $bot->userId(), 'command', '/start');
+            createLog(TIME_NOW, $role, $bot->userId(), 'command', '/start');
             $lang = lang($bot->userId());
             $keyboard = constructMenuButtons($lang);
             if ($referral) {
@@ -84,16 +85,17 @@ $bot->onCommand('start {referral}', function(Nutgram $bot, $referral = null) {
 });
 
 $bot->onCommand('start', function(Nutgram $bot) {
+    $role = checkRole($bot->userId());
     $checkUser = checkUser($bot->userId());
     if ($checkUser == 'no_such_user') {
         $user_info = get_object_vars($bot->user());
         $creating = createUser($user_info);
         if ($creating) {
             $bot->sendMessage(msg('welcome', lang($bot->userId())), reply_markup: constructMenuButtons(lang($bot->userId())));
-            createLog(TIME_NOW, 'user', $bot->userId(), 'registering', '/start');
+        createLog(TIME_NOW, $role, $bot->userId(), 'registering', '/start');
         }
     } elseif ($checkUser == 'one_user') {
-        createLog(TIME_NOW, 'user', $bot->userId(), 'command', '/start');
+        createLog(TIME_NOW, $role, $bot->userId(), 'command', '/start');
         $bot->sendMessage(msg('welcome_back', lang($bot->userId())), reply_markup: constructMenuButtons(lang($bot->userId())));
     } else {
         $bot->sendMessage('WTF are you?');
@@ -107,7 +109,8 @@ $bot->onCallbackQueryData('callback_change_lang', function (Nutgram $bot) {
 });
 
 $bot->onCallbackQueryData('callback_change_lang_to {param}', function (Nutgram $bot, $param) {
-    createLog(TIME_NOW, 'user', $bot->userId(), 'callback', 'change_lang_to '.$param);
+    $role = checkRole($bot->userId());
+    createLog(TIME_NOW, $role, $bot->userId(), 'callback', 'change_lang_to '.$param);
     $bot->deleteMessage($bot->userId(),$bot->messageId());
     changeLanguage($bot->userId(), $param);
     $bot->sendMessage(msg('language_changed', lang($bot->userId())), reply_markup: constructMenuButtons(lang($bot->userId())));
@@ -115,7 +118,8 @@ $bot->onCallbackQueryData('callback_change_lang_to {param}', function (Nutgram $
 });
 
 $bot->onCallbackQueryData('callback_view_friend_info {friendId}', function (Nutgram $bot, $friendId) {
-    createLog(TIME_NOW, 'user', $bot->userId(), 'callback', 'view_friend_info '.$friendId);
+    $role = checkRole($bot->userId());
+    createLog(TIME_NOW, $role, $bot->userId(), 'callback', 'view_friend_info '.$friendId);
     $lang = lang($bot->userId());
     $inlineKeyboard = InlineKeyboardMarkup::make()->addRow(InlineKeyboardButton::make(msg('prescribe_puff', $lang), null,null, 'callback_prescribe '.$friendId))->addRow(InlineKeyboardButton::make(msg('warn', $lang), null,null, 'callback_warn '.$friendId),InlineKeyboardButton::make(msg('remove_friend', $lang), null,null, 'callback_remove_friend '.$friendId))->addRow(InlineKeyboardButton::make(msg('cancel', $lang), null,null, 'callback_cancel'));
     $bot->deleteMessage($bot->userId(),$bot->messageId());
@@ -124,7 +128,8 @@ $bot->onCallbackQueryData('callback_view_friend_info {friendId}', function (Nutg
 });
 
 $bot->onCallbackQueryData('callback_prescribe {friendId}', function (Nutgram $bot, $friendId) {
-    createLog(TIME_NOW, 'user', $bot->userId(), 'callback', 'prescribe '.$friendId);
+    $role = checkRole($bot->userId());
+    createLog(TIME_NOW, $role, $bot->userId(), 'callback', 'prescribe '.$friendId);
     $username = getUsername($bot->userId());
     $prescribe = prescribePuff($bot->userId(), $friendId);
     if (str_contains($prescribe, "success")) {
@@ -157,7 +162,8 @@ $bot->onCallbackQueryData('callback_warn {friendId}', function (Nutgram $bot, $f
 });
 
 $bot->onCallbackQueryData('callback_warn_user {friendId} {reason}', function (Nutgram $bot, $friendId, $reason) {
-    createLog(TIME_NOW, 'user', $bot->userId(), 'callback', 'warn '.$friendId);
+    $role = checkRole($bot->userId());
+    createLog(TIME_NOW, $role, $bot->userId(), 'callback', 'warn '.$friendId);
     $check = warnFriend($bot->userId(), $friendId, $reason);
     $bot->deleteMessage($bot->userId(),$bot->messageId());
     if ($check) {
@@ -169,7 +175,8 @@ $bot->onCallbackQueryData('callback_warn_user {friendId} {reason}', function (Nu
 });
 
 $bot->onCallbackQueryData('callback_remove_friend {friendId}', function (Nutgram $bot, $friendId) {
-    createLog(TIME_NOW, 'user', $bot->userId(), 'callback', 'remove_friend '.$friendId);
+    $role = checkRole($bot->userId());
+    createLog(TIME_NOW, $role, $bot->userId(), 'callback', 'remove_friend '.$friendId);
     removeFriend($bot->userId(), $friendId);
     $bot->deleteMessage($bot->userId(),$bot->messageId());
     $bot->sendMessage(msg('unfriend', lang($bot->userId())));
@@ -177,7 +184,8 @@ $bot->onCallbackQueryData('callback_remove_friend {friendId}', function (Nutgram
 });
 
 $bot->onCallbackQueryData('callback_puff_decline {puffId} {friendId}', function (Nutgram $bot, $puffId, $friendId) {
-    createLog(TIME_NOW, 'user', $bot->userId(), 'callback', 'puff_decline '.$puffId);
+    $role = checkRole($bot->userId());
+    createLog(TIME_NOW, $role, $bot->userId(), 'callback', 'puff_decline '.$puffId);
     $username = getUsername($bot->userId());
     updatePuff($puffId, 'decline');
     $bot->sendMessage($username.msg('declined_puff', lang($friendId)), chat_id: $friendId);
@@ -187,7 +195,8 @@ $bot->onCallbackQueryData('callback_puff_decline {puffId} {friendId}', function 
 });
 
 $bot->onCallbackQueryData('callback_puff_approve {puffId} {friendId}', function (Nutgram $bot, $puffId, $friendId) {
-    createLog(TIME_NOW, 'user', $bot->userId(), 'callback', 'puff_approve '.$puffId);
+    $role = checkRole($bot->userId());
+    createLog(TIME_NOW, $role, $bot->userId(), 'callback', 'puff_approve '.$puffId);
     $status = updatePuff($puffId, 'approve');
     $username = getUsername($bot->userId());
     if ($status == "delay") {
@@ -201,7 +210,8 @@ $bot->onCallbackQueryData('callback_puff_approve {puffId} {friendId}', function 
 });
 
 $bot->onCallbackQueryData('callback_support', function (Nutgram $bot) {
-    createLog(TIME_NOW, 'user', $bot->userId(), 'callback', 'support '.$bot->messageId());
+    $role = checkRole($bot->userId());
+    createLog(TIME_NOW, $role, $bot->userId(), 'callback', 'support '.$bot->messageId());
     $bot->deleteMessage($bot->userId(),$bot->messageId());
     $keyboard = InlineKeyboardMarkup::make()->addRow(InlineKeyboardButton::make(msg('cancel', lang($bot->userId())), null,null, 'callback_cancel'));
     $bot->sendMessage(msg('support_msg', lang($bot->userId())), reply_markup: $keyboard);
@@ -209,7 +219,8 @@ $bot->onCallbackQueryData('callback_support', function (Nutgram $bot) {
 });
 
 $bot->onCallbackQueryData('callback_donate', function (Nutgram $bot) {
-    createLog(TIME_NOW, 'user', $bot->userId(), 'callback', 'donate');
+    $role = checkRole($bot->userId());
+    createLog(TIME_NOW, $role, $bot->userId(), 'callback', 'donate');
     $lang = lang($bot->userId());
     $bot->deleteMessage($bot->userId(),$bot->messageId());
     $selectDonationKeyboard = InlineKeyboardMarkup::make()->addRow(InlineKeyboardButton::make(msg('show_wallet', $lang), null, null, 'callback_show_wallet'))->addRow(InlineKeyboardButton::make(msg('cancel', $lang), null,null, 'callback_cancel'));
@@ -218,15 +229,21 @@ $bot->onCallbackQueryData('callback_donate', function (Nutgram $bot) {
 });
 
 $bot->onCallbackQueryData('callback_show_wallet', function (Nutgram $bot) {
-    createLog(TIME_NOW, 'user', $bot->userId(), 'callback', 'show_wallet');
+    $role = checkRole($bot->userId());
+    createLog(TIME_NOW, $role, $bot->userId(), 'callback', 'show_wallet');
     $bot->deleteMessage($bot->userId(),$bot->messageId());
     $bot->sendMessage("UQDtWWRLIE9a8gFZp7NnSlkNMYAIE1N7q7H8kcoS4kLGUiOP");
     $bot->answerCallbackQuery();
 });
 
 $bot->onCallbackQueryData('callback_cancel', function (Nutgram $bot) {
-    createLog(TIME_NOW, 'user', $bot->userId(), 'callback', 'cancel');
-    $bot->deleteMessage($bot->userId(),$bot->messageId());
+    $role = checkRole($bot->userId());
+    createLog(TIME_NOW, $role, $bot->userId(), 'callback', 'cancel');
+    try {
+        $bot->deleteMessage($bot->userId(),$bot->messageId());
+    } catch (Exception $e) {
+        error_log($e);
+    }
     $bot->sendMessage(msg('canceled', lang($bot->userId())), reply_markup: constructMenuButtons(lang($bot->userId())));
     $bot->answerCallbackQuery();
 });
@@ -295,9 +312,7 @@ $bot->onCallbackQueryData('/prescribe_page_{matches}/', function (Nutgram $bot, 
 
 $bot->onMessage(function (Nutgram $bot) use ($cache){
     $role = checkRole($bot->userId());
-    if ($role == 'user') {
-        createLog(TIME_NOW, 'user', $bot->userId(), 'message', $bot->message()->text);
-    }
+    createLog(TIME_NOW, $role, $bot->userId(), 'message', $bot->message()->text);
     $text = $bot->message()->text;
     $lang = lang($bot->userId());
     if (str_contains($text, msg('approve', $lang))) {
@@ -346,6 +361,15 @@ $bot->onMessage(function (Nutgram $bot) use ($cache){
         ->addRow(InlineKeyboardButton::make(msg('change_language', lang($bot->userId())), null, null, 'callback_change_lang'));
         $bot->sendMessage(constructStatus($bot->userId()), reply_markup: $inlineKeyboard);
     }
+    elseif (str_contains($text, msg('info', $lang))) {
+        $rand = rand(1, 3);
+        $msg = msg('information', lang($bot->userId())).msg('fact'.$rand, lang($bot->userId()));
+        $keyboard = InlineKeyboardMarkup::make()
+        ->addRow(InlineKeyboardButton::make(msg('support', lang($bot->userId())), null,null, 'callback_support'))
+        ->addRow(InlineKeyboardButton::make(msg('donate', lang($bot->userId())), null,null, 'callback_donate'))
+        ->addRow(InlineKeyboardButton::make(msg('cancel', lang($bot->userId())), null,null, 'callback_cancel'));
+        $bot->sendMessage($msg, reply_markup: $keyboard);
+    } 
     elseif ($role != 'user') {
         if (str_contains($text, '.msg')) {
             $bot->deleteMessage($bot->userId(),$bot->messageId());
@@ -364,16 +388,7 @@ $bot->onMessage(function (Nutgram $bot) use ($cache){
         if (str_contains($text, '.stat')) {
             $bot->deleteMessage($bot->userId(),$bot->messageId());
             $bot->sendMessage(showBotStat());
-        }
-    } //$bot->sendMessage(msg('no_perm', $lang));
-    elseif (str_contains($text, msg('info', $lang))) {
-        $rand = rand(1, 3);
-        $msg = msg('information', lang($bot->userId())).msg('fact'.$rand, lang($bot->userId()));
-        $keyboard = InlineKeyboardMarkup::make()
-        ->addRow(InlineKeyboardButton::make(msg('support', lang($bot->userId())), null,null, 'callback_support'))
-        ->addRow(InlineKeyboardButton::make(msg('donate', lang($bot->userId())), null,null, 'callback_donate'))
-        ->addRow(InlineKeyboardButton::make(msg('cancel', lang($bot->userId())), null,null, 'callback_cancel'));
-        $bot->sendMessage($msg, reply_markup: $keyboard);
+        }//$bot->sendMessage(msg('no_perm', $lang));
     } 
     else {
         $checkIfSupport = checkIfSupport($bot->userId(), $bot->messageId());

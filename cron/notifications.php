@@ -1,8 +1,8 @@
 <?php 
 
-require '../config.php'
-require '../functions.php';
-require '../bot.php';
+require_once '../bot.php';
+require_once '../config.php';
+require_once '../functions.php';
 
 createLog(TIME_NOW, 'bot', ADMIN_ID, 'notification', 'check');
 
@@ -30,7 +30,6 @@ function processResults($dbCon, Nutgram $bot, $result) {
     }
 }
 
-// Вызовите функцию sendNotifications
 sendNotifications($bot);
 
 ?>

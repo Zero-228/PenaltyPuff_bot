@@ -8,6 +8,7 @@ define("BOT_TOKEN", "");
 define("BOT_USERNAME", "");
 define("WEBHOOK_URL", "");
 define("WEB_APP", "");
+define("ADMIN_ID", "");
 
 define("DB_HOST", "");
 define("DB_USER", "");
