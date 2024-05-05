@@ -46,7 +46,13 @@ function createUser($user){
         $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
         $username = "";
         $timeNow = TIME_NOW;
-        $referral = uniqid();
+        while (true) {
+            $referral = uniqid();
+            $query = mysqli_query($dbCon, "SELECT * FROM user WHERE referral='$referral'");
+            if (mysqli_num_rows($query) == 0) {
+                break;
+            }
+        }
         if ($user['username']!='') { $username = $user['username']; } 
         else { $username = $user['first_name']." ".$user['last_name']; }
         mysqli_query($dbCon, "INSERT INTO user (userId, firstName, lastName, username, language, lastVisit, registeredAt, referral) VALUES ('" . $user['id'] . "', '" . $user['first_name'] . "', '" . $user['last_name'] . "', '" . $username . "', '" . $user['language_code'] . "', '" . $timeNow . "', '" . $timeNow . "', '" . $referral . "')");
@@ -55,7 +61,6 @@ function createUser($user){
     } else {
         return false;
     }
-    
 }
 
 function createLog($timestamp, $entity, $entityId, $context, $message) {
@@ -121,7 +126,7 @@ function constructStatus($userId, $language = null) {
     $checkPresctibedPuffs = mysqli_query($dbCon, "SELECT puffId FROM puff WHERE userFrom='$userId'");
     $num_rows_prescribed_puff = mysqli_num_rows($checkPresctibedPuffs);
 
-    $status = "=========================\n   📜 User: ".$username."\n=========================\n ".msg('status_frends', $lang).": ".$friends."\n\n ".msg('status_acceptedPuffs', $lang).": ".$puffs."\n\n ".msg('status_prescribedPuffs', $lang).": ".$num_rows_prescribed_puff."\n_____________________________\n ".msg('status_registered', $lang).": ".$registered."\n=========================";    
+    $status = "============================\n   📜 User: ".$username."\n============================\n ".msg('status_frends', $lang).": ".$friends."\n\n ".msg('status_acceptedPuffs', $lang).": ".$puffs."\n\n ".msg('status_prescribedPuffs', $lang).": ".$num_rows_prescribed_puff."\n________________________________\n ".msg('status_registered', $lang).": ".$registered."\n============================";    
 
     mysqli_close($dbCon);
 
@@ -149,10 +154,16 @@ function getUserFromRef($referral) {
 }
 
 function createRefCode($userId) {
-    $referral = uniqid();
+    $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+    while (true) {
+        $referral = uniqid();
+        $query = mysqli_query($dbCon, "SELECT * FROM user WHERE referral='$referral'");
+        if (mysqli_num_rows($query) == 0) {
+            break;
+        }
+    }
     try {
-        $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
-        $query = mysqli_query($dbCon, "UPDATE user SET referral='$referral' WHERE userId='$userId'");
+        mysqli_query($dbCon, "UPDATE user SET referral='$referral' WHERE userId='$userId'");
         mysqli_close($dbCon);
         return $referral;
     } catch (Exception $e) {

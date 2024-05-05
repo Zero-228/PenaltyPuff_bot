@@ -18,14 +18,14 @@ $bot->setWebhook(WEBHOOK_URL);
 $cache = new FilesystemAdapter();
 
 $bot->onCommand('start {referral}', function(Nutgram $bot, $referral = null) {
-    $lang = lang($bot->userId());
-    $role = checkRole($bot->userId());
     if ($referral) {
         $checkUser = checkUser($bot->userId());
         if ($checkUser == 'no_such_user') {
             $user_info = get_object_vars($bot->user());
             createUser($user_info);
             createLog(TIME_NOW, $role, $bot->userId(), 'registering', '/start');
+            $lang = lang($bot->userId());
+            $role = checkRole($bot->userId());
             $keyboard = constructMenuButtons($lang);
             if ($referral) {
                 if (ctype_digit($referral)) {
@@ -57,6 +57,7 @@ $bot->onCommand('start {referral}', function(Nutgram $bot, $referral = null) {
         } elseif ($checkUser == 'one_user') {
             createLog(TIME_NOW, $role, $bot->userId(), 'command', '/start');
             $lang = lang($bot->userId());
+            $role = checkRole($bot->userId());
             $keyboard = constructMenuButtons($lang);
             if ($referral) {
                 if (ctype_digit($referral)) {
@@ -91,18 +92,21 @@ $bot->onCommand('start {referral}', function(Nutgram $bot, $referral = null) {
 });
 
 $bot->onCommand('start', function(Nutgram $bot) {
-    $role = checkRole($bot->userId());
     $checkUser = checkUser($bot->userId());
     if ($checkUser == 'no_such_user') {
         $user_info = get_object_vars($bot->user());
         $creating = createUser($user_info);
         if ($creating) {
-            $bot->sendMessage(msg('welcome', lang($bot->userId())), reply_markup: constructMenuButtons(lang($bot->userId())));
+            $lang = lang($bot->userId());
+            $role = checkRole($bot->userId());
+            $bot->sendMessage(msg('welcome', $lang), reply_markup: constructMenuButtons($lang));
         createLog(TIME_NOW, $role, $bot->userId(), 'registering', '/start');
         }
     } elseif ($checkUser == 'one_user') {
+        $lang = lang($bot->userId());
+        $role = checkRole($bot->userId());
         createLog(TIME_NOW, $role, $bot->userId(), 'command', '/start');
-        $bot->sendMessage(msg('welcome_back', lang($bot->userId())), reply_markup: constructMenuButtons(lang($bot->userId())));
+        $bot->sendMessage(msg('welcome_back', $lang), reply_markup: constructMenuButtons($lang));
     } else {
         $bot->sendMessage('WTF are you?');
     }
