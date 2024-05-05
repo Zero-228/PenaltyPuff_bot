@@ -239,6 +239,8 @@ $bot->onCallbackQueryData('callback_show_wallet', function (Nutgram $bot) {
     createLog(TIME_NOW, $role, $bot->userId(), 'callback', 'show_wallet');
     $bot->deleteMessage($bot->userId(),$bot->messageId());
     $bot->sendMessage("UQDtWWRLIE9a8gFZp7NnSlkNMYAIE1N7q7H8kcoS4kLGUiOP");
+    sleep(1);
+    $bot->sendMessage("User: ".$bot->userId()." saw your wallet. Check it up!", chat_id: ADMIN_ID);
     $bot->answerCallbackQuery();
 });
 
@@ -394,7 +396,20 @@ $bot->onMessage(function (Nutgram $bot) use ($cache){
         if (str_contains($text, '.stat')) {
             $bot->deleteMessage($bot->userId(),$bot->messageId());
             $bot->sendMessage(showBotStat());
-        }//$bot->sendMessage(msg('no_perm', $lang));
+        }
+        if (str_contains($text, '.help')) {
+            $bot->deleteMessage($bot->userId(),$bot->messageId());
+            $bot->sendMessage(msg('WIP', lang($bot->userId())));
+        }
+        if (str_contains($text, '.sup')) {
+            $bot->deleteMessage($bot->userId(),$bot->messageId());
+            $bot->sendMessage(msg('WIP', lang($bot->userId())));
+        }
+        if (str_contains($text, '.warn')) {
+            $bot->deleteMessage($bot->userId(),$bot->messageId());
+            $bot->sendMessage(msg('WIP', lang($bot->userId())));
+        }
+        //$bot->sendMessage(msg('no_perm', $lang));
     } 
     else {
         $checkIfSupport = checkIfSupport($bot->userId(), $bot->messageId());
