@@ -23,9 +23,9 @@ $bot->onCommand('start {referral}', function(Nutgram $bot, $referral = null) {
         if ($checkUser == 'no_such_user') {
             $user_info = get_object_vars($bot->user());
             createUser($user_info);
-            createLog(TIME_NOW, $role, $bot->userId(), 'registering', '/start');
             $lang = lang($bot->userId());
             $role = checkRole($bot->userId());
+            createLog(TIME_NOW, $role, $bot->userId(), 'registering', '/start');
             $keyboard = constructMenuButtons($lang);
             if ($referral) {
                 if (ctype_digit($referral)) {
@@ -55,9 +55,9 @@ $bot->onCommand('start {referral}', function(Nutgram $bot, $referral = null) {
                 $bot->sendMessage(msg('welcome', $lang), reply_markup: $keyboard);
             }
         } elseif ($checkUser == 'one_user') {
-            createLog(TIME_NOW, $role, $bot->userId(), 'command', '/start');
             $lang = lang($bot->userId());
             $role = checkRole($bot->userId());
+            createLog(TIME_NOW, $role, $bot->userId(), 'command', '/start');
             $keyboard = constructMenuButtons($lang);
             if ($referral) {
                 if (ctype_digit($referral)) {
@@ -100,7 +100,7 @@ $bot->onCommand('start', function(Nutgram $bot) {
             $lang = lang($bot->userId());
             $role = checkRole($bot->userId());
             $bot->sendMessage(msg('welcome', $lang), reply_markup: constructMenuButtons($lang));
-        createLog(TIME_NOW, $role, $bot->userId(), 'registering', '/start');
+            createLog(TIME_NOW, $role, $bot->userId(), 'registering', '/start');
         }
     } elseif ($checkUser == 'one_user') {
         $lang = lang($bot->userId());
