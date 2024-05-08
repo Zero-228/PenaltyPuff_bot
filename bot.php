@@ -59,6 +59,9 @@ $bot->onCommand('start {referral}', function(Nutgram $bot, $referral = null) {
             $role = checkRole($bot->userId());
             createLog(TIME_NOW, $role, $bot->userId(), 'command', '/start');
             $keyboard = constructMenuButtons($lang);
+            if (checkUserStatus($bot->userId() == 'deleted')) {
+                userActivatedBot($bot->userId());
+            }
             if ($referral) {
                 if (ctype_digit($referral)) {
                     die();
@@ -103,6 +106,18 @@ $bot->onCommand('start', function(Nutgram $bot) {
             createLog(TIME_NOW, $role, $bot->userId(), 'registering', '/start');
         }
     } elseif ($checkUser == 'one_user') {
+        sleep(1);
+        if (checkUserStatus($bot->userId() == 'deleted')) {
+            userActivatedBot($bot->userId());
+            $username = getUsername($bot->userId());
+            $friends = showFriends($bot->userId());
+            foreach ($friends as $friend) {
+                $friendLang = lang($friend['id']);
+                $inlineKeyboard = InlineKeyboardMarkup::make()->addRow(InlineKeyboardButton::make(msg('prescribe_puff', $friendLang), null,null, 'callback_prescribe '.$bot->userId()))->addRow(InlineKeyboardButton::make(msg('cancel', $friendLang), null,null, 'callback_cancel'));
+                $bot->sendMessage('🎉'.$username.msg('activated_bot', $friendLang), reply_markup: $inlineKeyboard, chat_id: $friend['id']);
+                sleep(1);
+            }
+        }
         $lang = lang($bot->userId());
         $role = checkRole($bot->userId());
         createLog(TIME_NOW, $role, $bot->userId(), 'command', '/start');
@@ -210,6 +225,9 @@ $bot->onCallbackQueryData('callback_remove_friend {friendId}', function (Nutgram
 
 $bot->onCallbackQueryData('callback_puff_decline {puffId} {friendId}', function (Nutgram $bot, $puffId, $friendId) {
     $role = checkRole($bot->userId());
+    if (checkUserStatus($bot->userId() == 'deleted')) {
+        userActivatedBot($bot->userId());
+    }
     createLog(TIME_NOW, $role, $bot->userId(), 'callback', 'puff_decline '.$puffId);
     $username = getUsername($bot->userId());
     updatePuff($puffId, 'decline');
@@ -237,6 +255,9 @@ $bot->onCallbackQueryData('callback_puff_decline {puffId} {friendId}', function 
 $bot->onCallbackQueryData('callback_puff_approve {puffId} {friendId}', function (Nutgram $bot, $puffId, $friendId) {
     $role = checkRole($bot->userId());
     createLog(TIME_NOW, $role, $bot->userId(), 'callback', 'puff_approve '.$puffId);
+    if (checkUserStatus($bot->userId() == 'deleted')) {
+        userActivatedBot($bot->userId());
+    }
     $status = updatePuff($puffId, 'approve');
     $username = getUsername($bot->userId());
     if ($status == "delay") {
@@ -295,6 +316,9 @@ $bot->onCallbackQueryData('callback_show_wallet', function (Nutgram $bot) {
 
 $bot->onCallbackQueryData('callback_cancel', function (Nutgram $bot) {
     $role = checkRole($bot->userId());
+    if (checkUserStatus($bot->userId() == 'deleted')) {
+        userActivatedBot($bot->userId());
+    }
     createLog(TIME_NOW, $role, $bot->userId(), 'callback', 'cancel');
     try {
         $bot->deleteMessage($bot->userId(),$bot->messageId());

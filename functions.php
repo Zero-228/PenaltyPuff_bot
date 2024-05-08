@@ -465,6 +465,12 @@ function userBlockedBot($userId) {
     mysqli_close($dbCon);
 }
 
+function userActivatedBot($userId) {
+    $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+    $query = mysqli_query($dbCon, "UPDATE user SET deleted='no' WHERE userId='$userId'");
+    mysqli_close($dbCon);
+}
+
 function checkUserStatus($userId) {
     $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
     $query = mysqli_query($dbCon, "SELECT deleted, banned FROM user WHERE userId='$userId'");

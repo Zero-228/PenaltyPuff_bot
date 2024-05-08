@@ -1,8 +1,8 @@
 <?php 
 
-include '/home4/zerosite/public_html/ShtrafnayaBot.v2/config.php';
-include '/home4/zerosite/public_html/ShtrafnayaBot.v2/functions.php';
-include '/home4/zerosite/public_html/ShtrafnayaBot.v2/bot.php';
+include $_SERVER['DOCUMENT_ROOT'].'/ShtrafnayaBot.v2/config.php';
+include $_SERVER['DOCUMENT_ROOT'].'/ShtrafnayaBot.v2/functions.php';
+include $_SERVER['DOCUMENT_ROOT'].'/ShtrafnayaBot.v2/bot.php';
 use SergiX44\Nutgram\Nutgram;
 use SergiX44\Nutgram\RunningMode\Webhook;
 
@@ -28,10 +28,18 @@ function processResults($dbCon, Nutgram $bot, $result, $messageType) {
         $logResult = mysqli_query($dbCon, $logQuery);
         if (mysqli_num_rows($logResult) == 0) {
             $language = isset($user['language']) ? $user['language'] : 'en';
-            $bot->sendMessage(msg($messageType, $language), chat_id: $userId);
-            createLog(TIME_NOW, 'bot', $userId, 'notification', $messageType);
-            $counter++;
-            sleep(1);
+            try {
+                $bot->sendMessage(msg($messageType, $language), chat_id: $userId);
+                createLog(TIME_NOW, 'bot', $userId, 'notification', $messageType);
+                $counter++;
+                sleep(1);
+            } catch (\Exception $e) {
+                if ($e->getCode() == '403') {
+                    UserBlockedBot($userId);
+                    sleep(1);
+                }
+            }
+            
         }
     }
     return $counter;
