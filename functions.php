@@ -229,6 +229,25 @@ function showFriends($userId) {
     return $friends_info;
 }
 
+function checkUserStatus($userId) {
+    $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+    $query = mysqli_query($dbCon, "SELECT deleted, banned FROM user WHERE userId='$userId'");
+    $checkStatus = mysqli_fetch_assoc($query);
+    mysqli_close($dbCon);
+    if ($checkStatus) {
+        if ($checkStatus['banned'] == 'yes') {
+            return 'banned';
+        } elseif ($checkStatus['deleted'] == 'yes') {
+            return 'deleted';
+        } else {
+            return 'active';
+        }
+    } else {
+        error_log('Error checking user\'s status: unknown user '.$userId);
+    }
+}
+
+
 function getFriendKeyboard(array $friends, int $page, $userId): InlineKeyboardMarkup{
     $referral = getReferralCode($userId);
     if (!$referral) {
@@ -316,7 +335,8 @@ function prescribePuffFriend2($userId, $page = 0) {
     $keyboard = InlineKeyboardMarkup::make();
     $start = $page * 5;
     for ($i = $start; $i < $start + 5 && $i < count($friends); $i++) {
-        $msg = $friends[$i]['first_name']."  ( ".$friends[$i]['username']." )";
+        $numPuffs = countPuffs($userId, $friends[$i]['id']);
+        $msg = $friends[$i]['first_name']."  ( ".$friends[$i]['username']." )  [".$numPuffs."]";
         $keyboard->addRow(InlineKeyboardButton::make($msg, null,null, 'callback_prescribe '.$friends[$i]['id']));
     }
     if ($page > 0 || count($friends) > ($start + 5)) {
@@ -431,7 +451,9 @@ function checkRole($userId) {
         return "no user";
     }
     mysqli_close($dbCon);
-}function showBotStat() {
+}
+
+function showBotStat() {
     $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 
     $query = "
@@ -457,5 +479,28 @@ function checkRole($userId) {
     return $msg;
 }
 
+function userBlockedBot($userId) {
+    $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+    $query = mysqli_query($dbCon, "UPDATE user SET deleted='yes' WHERE userId='$userId'");
+    mysqli_close($dbCon);
+}
+
+function userActivatedBot($userId) {
+    $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+    $query = mysqli_query($dbCon, "UPDATE user SET deleted='no' WHERE userId='$userId'");
+    mysqli_close($dbCon);
+}
+
+function countPuffs($userId, $friendId) {
+    $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+    $query = mysqli_query($dbCon, "SELECT puffId FROM puff WHERE userFrom='$userId' AND userTo='$friendId' AND status='pending'");
+    $count = mysqli_num_rows($query);
+    mysqli_close($dbCon);
+    if (!$count) {
+        return 0;
+    } else {
+        return $count;
+    }
+}
 
 ?>
