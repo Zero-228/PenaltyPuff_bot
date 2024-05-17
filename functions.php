@@ -431,7 +431,9 @@ function checkRole($userId) {
         return "no user";
     }
     mysqli_close($dbCon);
-}function showBotStat() {
+}
+
+function showBotStat() {
     $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 
     $query = "
@@ -457,5 +459,30 @@ function checkRole($userId) {
     return $msg;
 }
 
+function userBlockedBot($userId) {
+    $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+    $query = mysqli_query($dbCon, "UPDATE user SET deleted='yes' WHERE userId='$userId'");
+    mysqli_close($dbCon);
+}
+
+function userActivatedBot($userId) {
+    $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+    $query = mysqli_query($dbCon, "UPDATE user SET deleted='no' WHERE userId='$userId'");
+    mysqli_close($dbCon);
+}
+
+function checkUserStatus($userId) {
+    $dbCon = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+    $query = mysqli_query($dbCon, "SELECT deleted, banned FROM user WHERE userId='$userId'");
+    $checkStatus = mysqli_fetch_assoc($query);
+    mysqli_close($dbCon);
+    if ($checkStatus['banned'] == 'yes') {
+        return 'banned';
+    } elseif ($checkStatus['deleted'] == 'yes') {
+        return 'deleted';
+    } else {
+        return 'active';
+    }
+}
 
 ?>

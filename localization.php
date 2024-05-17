@@ -99,6 +99,11 @@ $languages = array(
 		'no_perm' => "❗️You don't have permissions to do that ❌",
 		'inactivity' => "🔔 Hello, it seems you haven't \nvisited the bot for a while. \nPrescribe penalty puff to friends, \nso they don't relax!)",
 		'unapprooved' => "🔔You have an unapproved \npenalty puff! 🌳\n\nHow is this possible?! ☹️",
+		'prescribe_deleted_user' => "🌳 You prescribed penalty puff to your friend 👍 But he blocked the bot ☹️ \n\nSomething urgently needs to be done about this❗️",
+		'puff_declined_deleted_user' => "🚫 You declined the penalty. Your friend won't be notified because this rascal blocked the bot ☹️",
+		'puff_approved_deleted_user' => "✅ You confirmed the penalty puff👍\n\nBut your friend won't find out about it because this rascal blocked the bot ☹️",
+		'activated_bot' => " is back with us! \n\nGreet your friend as it should be 😄",
+
 	),
 	'ru' => array(
 		'welcome' => "Привет! Я - Penalty Puff, твой помощник \nв веселом и справедливом выписывании \nштрафных. Доверь мне эту нелегкую \nзадачу, и вместе мы сделаем процесс \nболее интересным и дружелюбным! \nДавай начнем? 💨✍️",
@@ -171,6 +176,10 @@ $languages = array(
 		'no_perm' => "❗️У тебя недостаточно прав чтобы это сделать ❌",
 		'inactivity' => "🔔Привет, кажется ты давно не заходил в \nбота, выпиши штрафную друзьям, чтоб \nони не расслаблялись!)",
 		'unapprooved' => "🔔У тебя есть неподтверждённая штрафная! 🌳\n\nКак так можно?! ☹️",
+		'prescribe_deleted_user' => "🌳 Ты выписал штрафную банку своему другу 👍 Но он заблокировал бота ☹️ \n\nС этим срочно нужно что-то делать❗️",
+		'puff_declined_deleted_user' => "🚫 Ты отказался от штрафной. Твой друг про это не узнает, потому что эта редиска заблокировала бота ☹️",
+		'puff_approved_deleted_user' => "✅ Ты подтвердил штрафную 👍\n\nНо твой друг про это не узнает, потому что эта редиска заблокировала бота ☹️",
+		'activated_bot' => " снова с нами! \n\nПоприветствуй своего друга как положено 😄",
 	),
 	'uk' => array(
 		'welcome' => "Привіт! Я - Penalty Puff, твій помічник \nу веселому та справедливому \nвиписуванні штрафних. Довірся мені з \nцією нелегкою задачею, і разом ми \nзробимо процес більш цікавим та дружелюбним! Давай почнемо? 💨✍️",
@@ -243,6 +252,11 @@ $languages = array(
 		'no_perm' => "❗️У тебе недостатньо прав щоб це зробии ❌",
 		'inactivity' => "🔔Привіт, здається ти давно не \nзаходив в бота, випиши штрафну \nсвоїм,🔔 щоб вони не розслаблялись!)",
 		'unapprooved' => "🔔У тебе є непідтверджена штрафна! 🌳\n\nЯк так можна?! ☹️",
+		'prescribe_deleted_user' => "🌳 Ти виписав штрафну банку своєму другу 👍 Але він заблокував бота ☹️ \n\nЗ цим терміново потрібно щось робити❗️",
+		'puff_declined_deleted_user' => "🚫 Ти відмовився від штрафної. Твій друг про це не дізнається, тому що цей негідник заблокував бота ☹️",
+		'puff_approved_deleted_user' => "✅ Ти підтвердив штрафну 👍\n\nАле твій друг про це не дізнається, тому що цей негідник заблокував бота ☹️",
+		'activated_bot' => " знову з нами! \n\nПриітай свого друга, як належить 😄",
+
 
 	),
 );
