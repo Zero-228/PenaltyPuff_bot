@@ -1,7 +1,6 @@
 /vendor
 /temp
 config.php
-composer.json
 composer.lock
 ngrok.exe
 .phpintel
