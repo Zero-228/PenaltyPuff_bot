@@ -1,4 +1,17 @@
 <?php 
+/**
+ * Paid Channel Chatbot
+ * 
+ * Licensed under the Simple Commercial License.
+ * 
+ * Copyright (c) 2024 Nikita Shkilov nikshkilov@yahoo.com
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of PenaltyPuff bot. The use of this file is governed by the
+ * terms of the Simple Commercial License, which can be found in the LICENSE file
+ * in the root directory of this project.
+ */
 
 use SergiX44\Nutgram\Telegram\Types\Keyboard\InlineKeyboardMarkup;
 use SergiX44\Nutgram\Telegram\Types\Keyboard\InlineKeyboardButton;
