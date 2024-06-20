@@ -17,18 +17,24 @@ require_once __DIR__ . '/vendor/autoload.php';
 require_once 'config.php';
 require_once 'functions.php';
 require 'localization.php';
+require 'prescription.php';
 
 use SergiX44\Nutgram\Nutgram;
+use SergiX44\Nutgram\Configuration;
 use SergiX44\Nutgram\RunningMode\Webhook;
 use SergiX44\Nutgram\Support\DeepLink;
+use SergiX44\Nutgram\Conversations\InlineMenu;
+use SergiX44\Nutgram\Conversations\Conversation;
 use SergiX44\Nutgram\Telegram\Types\Keyboard\InlineKeyboardMarkup;
 use SergiX44\Nutgram\Telegram\Types\Keyboard\InlineKeyboardButton;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
+use Symfony\Component\Cache\Psr16Cache;
 
-$bot = new Nutgram(BOT_TOKEN);
+$filesystemAdapter = new FilesystemAdapter();
+$cache = new Psr16Cache($filesystemAdapter);
+$bot = new Nutgram(BOT_TOKEN, new Configuration(cache: $cache));
 $bot->setRunningMode(Webhook::class);
 $bot->setWebhook(WEBHOOK_URL);
-$cache = new FilesystemAdapter();
 
 $bot->onCommand('start {referral}', function(Nutgram $bot, $referral = null) {
     if ($referral) {
@@ -168,38 +174,8 @@ $bot->onCallbackQueryData('callback_view_friend_info {friendId}', function (Nutg
 $bot->onCallbackQueryData('callback_prescribe {friendId}', function (Nutgram $bot, $friendId) {
     $role = checkRole($bot->userId());
     createLog(TIME_NOW, $role, $bot->userId(), 'callback', 'prescribe '.$friendId);
-    $username = getUsername($bot->userId());
-    $prescribe = prescribePuff($bot->userId(), $friendId);
-    if (str_contains($prescribe, "success")) {
-        $trimmedPrescribe = substr($prescribe, strpos($prescribe, "success") + strlen("success"));
-        $puffId = (int)$trimmedPrescribe;
-        $friendLang = lang($friendId);
-        $inlineKeyboard = InlineKeyboardMarkup::make()->addRow(InlineKeyboardButton::make(msg('puff_decline', $friendLang), null,null, 'callback_puff_decline '.$puffId.' '.$bot->userId()),InlineKeyboardButton::make(msg('puff_approve', $friendLang), null,null, 'callback_puff_approve '.$puffId.' '.$bot->userId()))->addRow(InlineKeyboardButton::make(msg('cancel', $friendLang), null,null, 'callback_cancel'));
-        $checkStatus = checkUserStatus($friendId);
-        if ($checkStatus == 'deleted') {
-            $bot->deleteMessage($bot->userId(),$bot->messageId());
-            $bot->sendMessage(msg('prescribe_deleted_user', lang($bot->userId())));
-        } elseif ($checkStatus == 'active') {
-            try {
-                $bot->sendMessage($username.msg('prescribed_puff', $friendLang), chat_id: $friendId, reply_markup: $inlineKeyboard);
-                $bot->deleteMessage($bot->userId(),$bot->messageId());
-                $bot->sendMessage(msg('prescribe_success', lang($bot->userId())));
-            } catch (\Exception $e) {
-                if ($e->getCode() == '403') {
-                    sleep(1);
-                    UserBlockedBot($friendId);
-                    $bot->deleteMessage($bot->userId(),$bot->messageId());
-                    $bot->sendMessage(msg('prescribe_deleted_user', lang($bot->userId())));
-                }
-            }
-        }
-    } elseif ($prescribe == "self") {
-        $bot->deleteMessage($bot->userId(),$bot->messageId());
-        $bot->sendMessage(msg('prescribe_self', lang($bot->userId())));
-    } elseif ($prescribe == "delay") {
-        $bot->deleteMessage($bot->userId(),$bot->messageId());
-        $bot->sendMessage(msg('prescribe_delay', lang($bot->userId())));
-    }
+    $prescribe = new PrescribePuff($bot);
+    $prescribe->start($bot, $friendId);
     $bot->answerCallbackQuery();
 });
 
@@ -415,7 +391,7 @@ $bot->onMessage(function (Nutgram $bot) use ($cache){
             foreach ($check as $puff) {
                 $inlineKeyboard = InlineKeyboardMarkup::make()->addRow(InlineKeyboardButton::make(msg('puff_decline', $lang), null,null, 'callback_puff_decline '.$puff['puffId'].' '.$puff['userFrom']),InlineKeyboardButton::make(msg('puff_approve', $lang), null,null, 'callback_puff_approve '.$puff['puffId'].' '.$puff['userFrom']))->addRow(InlineKeyboardButton::make(msg('cancel', $lang), null,null, 'callback_cancel'));
                 $username = getUsername($puff['userFrom']);
-                $msg = $username.msg('prescribed_puff', $lang)."\n\n( ".$puff['prescribed_at'].' )';
+                $msg = $username.msg('prescribed_puff', $lang)."\n\n".msg('comment', $lang).$puff['comment']."\n\n( ".$puff['prescribed_at'].' )';
                 $bot->sendMessage($msg, chat_id: $puff['userTo'], reply_markup: $inlineKeyboard);
                 sleep(1);
             }
@@ -494,6 +470,10 @@ $bot->onMessage(function (Nutgram $bot) use ($cache){
         if (str_contains($text, '.warn')) {
             $bot->deleteMessage($bot->userId(),$bot->messageId());
             $bot->sendMessage(msg('WIP', lang($bot->userId())));
+        }
+        if (str_contains($text, '.test')) {
+            $prescribe = new PrescribePuff($bot);
+            $prescribe->start($bot, $bot->userId());
         }
         //$bot->sendMessage(msg('no_perm', $lang));
     } 

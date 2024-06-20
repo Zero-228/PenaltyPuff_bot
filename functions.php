@@ -310,7 +310,7 @@ function warnFriend($userId, $friendId, $reason) {
     mysqli_close($dbCon);
 }
 
-function prescribePuff($userId, $friendId) {
+function prescribePuff($userId, $friendId, $comment = NULL) {
     $now = new DateTime('now', new DateTimeZone('Europe/Madrid'));
     $timeNow = $now->format('Y-m-d H:i:s');
     if ($userId!=$friendId) {
@@ -325,13 +325,13 @@ function prescribePuff($userId, $friendId) {
             if ($latestPrescribedAt > strtotime($timeNow)) {
                 return "delay";
             } else {
-                $query = mysqli_query($dbCon, "INSERT INTO puff (userFrom, userTo, status, modified_at, prescribed_at) VALUES ('$userId', '$friendId', 'pending', '$timeNow', '$timeNow')");
+                $query = mysqli_query($dbCon, "INSERT INTO puff (userFrom, userTo, status, comment, modified_at, prescribed_at) VALUES ('$userId', '$friendId', 'pending', '$comment', '$timeNow', '$timeNow')");
                 $checkPuffs2 = mysqli_query($dbCon, "SELECT puffId FROM puff WHERE userFrom = '$userId' AND userTo = '$friendId' AND prescribed_at='$timeNow'");
                 $row = mysqli_fetch_assoc($checkPuffs2); 
                 return "success ".$row['puffId'];
             }
         } else {
-            $query = mysqli_query($dbCon, "INSERT INTO puff (userFrom, userTo, status, modified_at, prescribed_at) VALUES ('$userId', '$friendId', 'pending', '$timeNow', '$timeNow')");
+            $query = mysqli_query($dbCon, "INSERT INTO puff (userFrom, userTo, status, comment, modified_at, prescribed_at) VALUES ('$userId', '$friendId', 'pending', '$comment', '$timeNow', '$timeNow')");
             $checkPuffs2 = mysqli_query($dbCon, "SELECT puffId FROM puff WHERE userFrom = '$userId' AND userTo = '$friendId' AND prescribed_at='$timeNow'");
             $row = mysqli_fetch_assoc($checkPuffs2); 
             return "success ".$row['puffId'];
@@ -414,7 +414,7 @@ function getUsername($userId){
         return $username['username'];
     } else {
         mysqli_close($dbCon);
-        return msg("friend", $bot->userId());
+        return msg("friend", $userId);
     }
 }
 
