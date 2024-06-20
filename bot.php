@@ -1,6 +1,6 @@
 <?php 
 /**
- * Paid Channel Chatbot
+ * PenaltyPuff Chatbot
  * 
  * Licensed under the Simple Commercial License.
  * 
@@ -30,11 +30,12 @@ use SergiX44\Nutgram\Telegram\Types\Keyboard\InlineKeyboardButton;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use Symfony\Component\Cache\Psr16Cache;
 
-$filesystemAdapter = new FilesystemAdapter();
-$cache = new Psr16Cache($filesystemAdapter);
-$bot = new Nutgram(BOT_TOKEN, new Configuration(cache: $cache));
+$filesystemAdapterX = new FilesystemAdapter();
+$cacher = new Psr16Cache($filesystemAdapterX);
+$bot = new Nutgram(BOT_TOKEN, new Configuration(cache: $cacher));
 $bot->setRunningMode(Webhook::class);
 $bot->setWebhook(WEBHOOK_URL);
+$cache = new FilesystemAdapter();
 
 $bot->onCommand('start {referral}', function(Nutgram $bot, $referral = null) {
     if ($referral) {

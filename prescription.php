@@ -1,4 +1,17 @@
 <?php 
+/**
+ * PenaltyPuff Chatbot
+ * 
+ * Licensed under the Simple Commercial License.
+ * 
+ * Copyright (c) 2024 Nikita Shkilov nikshkilov@yahoo.com
+ * 
+ * All rights reserved.
+ * 
+ * This file is part of PenaltyPuff bot. The use of this file is governed by the
+ * terms of the Simple Commercial License, which can be found in the LICENSE file
+ * in the root directory of this project.
+ */
 
 require_once __DIR__ . '/vendor/autoload.php';
 require_once __DIR__ . '/config.php';
@@ -61,6 +74,7 @@ class PrescribePuff extends InlineMenu
             ->clearButtons()
             ->addButtonRow(InlineKeyboardButton::make(msg('prescribe_puff', $lang), callback_data: '@prescribe'))
             ->addButtonRow(InlineKeyboardButton::make(msg('cancel', $lang), callback_data: '@none'))
+            ->orNext('handleComment')
             ->showMenu();
     }
 

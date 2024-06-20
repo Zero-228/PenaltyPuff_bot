@@ -1,7 +1,6 @@
 <?php 
-
 /**
- * Paid Channel Chatbot
+ * PenaltyPuff Chatbot
  * 
  * Licensed under the Simple Commercial License.
  * 
