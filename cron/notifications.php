@@ -13,9 +13,9 @@
  * in the root directory of this project.
  */
 
-include $_SERVER['DOCUMENT_ROOT'].'/ShtrafnayaBot.v2/config.php';
-include $_SERVER['DOCUMENT_ROOT'].'/ShtrafnayaBot.v2/functions.php';
-include $_SERVER['DOCUMENT_ROOT'].'/ShtrafnayaBot.v2/bot.php';
+include __DIR__ . '/../config.php';
+include __DIR__ . '/../functions.php';
+include __DIR__ . '/../bot.php';
 use SergiX44\Nutgram\Nutgram;
 use SergiX44\Nutgram\RunningMode\Webhook;
 

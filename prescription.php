@@ -29,6 +29,8 @@ $cacher = new Psr16Cache($filesystemAdapterX);
 class PrescribePuff extends InlineMenu
 {
     protected Nutgram $bot;
+    protected ?int $friendId = null;
+    protected ?string $comment = null;
 
     public function __construct(Nutgram $bot)
     {
